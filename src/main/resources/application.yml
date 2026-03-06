@@ -2,9 +2,6 @@ server:
   port: ${PORT:8080}
 
 spring:
-  application:
-    name: backend
-
   datasource:
     url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${MYSQLUSER}
