@@ -1,14 +1,15 @@
+server:
+  port: ${PORT:8080}
+
 spring:
-  application:
-    name: backend
   datasource:
-    url: jdbc:mysql://localhost:3306/fast_food
-    username: root
-    password:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:fast_food}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${SPRING_DATASOURCE_USERNAME:${MYSQLUSER:root}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${MYSQLPASSWORD:123456}}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-  jackson:
-    serialization:
-      indent-output: true
+    database-platform: org.hibernate.dialect.MySQLDialect
