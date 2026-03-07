@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1:3306
--- Thời gian đã tạo: Th3 06, 2026 lúc 04:10 PM
+-- Thời gian đã tạo: Th3 07, 2026 lúc 03:27 PM
 -- Phiên bản máy phục vụ: 9.1.0
 -- Phiên bản PHP: 8.3.14
 
@@ -29,20 +29,21 @@ SET time_zone = "+00:00";
 
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
-  `id` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `users`
 --
 
 INSERT INTO `users` (`id`, `name`) VALUES
-('SV01', 'Phú Thịnh'),
-('SV02', 'Trọng Bình'),
-('SV03', 'Hữu Trường'),
-('SV04', 'Phước Nhân'),
-('SV05', 'Phú Quốc\r\n');
+(1, 'Phú Thịnh'),
+(2, 'Trọng Bình'),
+(3, 'Hữu Trường'),
+(4, 'Phước Nhân'),
+(5, 'Phú Quốc');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

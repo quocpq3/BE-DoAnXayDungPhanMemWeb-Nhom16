@@ -1,22 +1,14 @@
 package com.example.backend.service;
 
-import com.example.backend.entity.User;
-import com.example.backend.repository.UserRepository;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import org.springframework.stereotype.Service;
-
+import com.example.backend.dto.request.UserCreateRequest;
+import com.example.backend.dto.request.UserUpdateRequest;
+import com.example.backend.dto.response.UserResponse;
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
-public class UserService {
-    UserRepository userRepository;
-
-    public List<User> getUsers(){
-        return userRepository.findAll();
-    }
-
+public interface UserService {
+    UserResponse createUser(UserCreateRequest request);
+    List<UserResponse> getAllUsers();
+    UserResponse getUserById(Long id);
+    UserResponse updateUser(Long id, UserUpdateRequest request);
+    void deleteUser(Long id);
 }
