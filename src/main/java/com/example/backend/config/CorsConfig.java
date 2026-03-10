@@ -11,21 +11,15 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:5173}")
-    private List<String> allowedOrigins;
-
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOriginPatterns(allowedOrigins.toArray(new String[0]))
-                        .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-                        .allowedHeaders("*")
-                        .exposedHeaders("Authorization")
-                        .allowCredentials(true)
-                        .maxAge(3600);
+                        .allowedOrigins("*")
+                        .allowedMethods("GET","POST","PUT","DELETE")
+                        .allowedHeaders("*");
             }
         };
     }
