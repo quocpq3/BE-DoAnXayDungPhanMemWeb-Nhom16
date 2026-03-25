@@ -1,7 +1,6 @@
 package com.example.backend.exception;
 
-import com.example.backend.dto.response.ApiResponse;
-import org.springframework.http.HttpStatus;
+import com.example.backend.common.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,33 +9,43 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Bắt các lỗi chung chung (RuntimeException)
-    @ExceptionHandler(value = RuntimeException.class)
-    ResponseEntity<ApiResponse> handlingRuntimeException(RuntimeException exception) {
+    // Bắt lỗi hệ thống chưa xác định (Thay cho RuntimeException cũ)
+    @ExceptionHandler(value = Exception.class)
+    ResponseEntity<ApiResponse> handlingRuntimeException(Exception exception) {
         ApiResponse apiResponse = new ApiResponse();
-        apiResponse.setCode(9999);
-        apiResponse.setMessage(exception.getMessage());
-        return ResponseEntity.badRequest().body(apiResponse);
+        apiResponse.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode());
+        apiResponse.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
+
+        return ResponseEntity.status(ErrorCode.UNCATEGORIZED_EXCEPTION.getStatusCode()).body(apiResponse);
     }
 
-    // Bắt lỗi khi không tìm thấy tài nguyên (User not found)
-    @ExceptionHandler(value = ResourceNotFoundException.class)
-    ResponseEntity<ApiResponse> handlingResourceNotFoundException(ResourceNotFoundException exception) {
+    // Bắt lỗi nghiệp vụ do bạn tự throw (Dùng AppException)
+    @ExceptionHandler(value = AppException.class)
+    ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
+        ErrorCode errorCode = exception.getErrorCode();
         ApiResponse apiResponse = new ApiResponse();
-        apiResponse.setCode(404);
-        apiResponse.setMessage(exception.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
+
+        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setMessage(errorCode.getMessage());
+
+        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
 
-    // Bắt lỗi Validation (Dữ liệu đầu vào không hợp lệ)
+    // Bắt lỗi Validation (Dữ liệu đầu vào)
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse> handlingValidation(MethodArgumentNotValidException exception) {
         String enumKey = exception.getFieldError().getDefaultMessage();
+        ErrorCode errorCode = ErrorCode.INVALID_KEY;
+
+        try {
+            errorCode = ErrorCode.valueOf(enumKey);
+        } catch (IllegalArgumentException e) {
+        }
 
         ApiResponse apiResponse = new ApiResponse();
-        apiResponse.setCode(400);
-        apiResponse.setMessage(enumKey);
+        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setMessage(errorCode.getMessage());
 
-        return ResponseEntity.badRequest().body(apiResponse);
+        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
 }
