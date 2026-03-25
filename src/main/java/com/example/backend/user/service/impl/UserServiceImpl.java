@@ -1,0 +1,67 @@
+package com.example.backend.user.service.impl;
+
+import com.example.backend.user.dto.request.UserCreateRequest;
+import com.example.backend.user.dto.request.UserUpdateRequest;
+import com.example.backend.user.dto.response.UserResponse;
+import com.example.backend.user.entity.User;
+import com.example.backend.exception.AppException;
+import com.example.backend.exception.ErrorCode;
+import com.example.backend.user.mapper.UserMapper;
+import com.example.backend.user.repository.UserRepository;
+import com.example.backend.user.service.UserService;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class UserServiceImpl implements UserService {
+    UserRepository userRepository;
+    UserMapper userMapper;
+
+    @Override
+    public UserResponse createUser(UserCreateRequest request) {
+        if (userRepository.existsByName(request.getName()))
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+
+        User user = userMapper.toUser(request);
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    @Override
+    public List<UserResponse> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(userMapper::toUserResponse).toList();
+    }
+
+    @Override
+    public UserResponse getUserById(Long id) {
+        return userMapper.toUserResponse(userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+    }
+
+    @Override
+    public UserResponse updateUser(Long id, UserUpdateRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (!user.getName().equals(request.getName()) &&
+                userRepository.existsByName(request.getName())) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+
+        userMapper.updateUser(user, request);
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        if (!userRepository.existsById(id))
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        userRepository.deleteById(id);
+    }
+}
