@@ -1,4 +1,4 @@
-branch package com.example.backend.menuitem.controller;
+package com.example.backend.menuitem.controller;
 
 import com.example.backend.common.ApiResponse;
 import com.example.backend.menuitem.dto.MenuItemRequest;
