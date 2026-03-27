@@ -8,9 +8,6 @@ public class MenuItemRequest {
     @NotBlank(message = "ITEM_NAME_BLANK")
     private String itemName;
 
-    @NotBlank(message = "SLUG_BLANK")
-    private String slug;
-
     @NotNull(message = "CATEGORY_ID_NULL")
     private Long categoryId;
 
