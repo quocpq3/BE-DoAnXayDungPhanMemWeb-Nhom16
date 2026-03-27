@@ -15,6 +15,7 @@ public enum ErrorCode {
     CATEGORY_NOT_EXISTED(1005, "Không tìm thấy danh mục", HttpStatus.NOT_FOUND),
     CATEGORY_NAME_BLANK(1004, "Tên danh mục không được để trống", HttpStatus.BAD_REQUEST),
     CATEGORY_NAME_INVALID(1003, "Tên danh mục phải từ 3 đến 100 ký tự", HttpStatus.BAD_REQUEST),
+    SLUG_ALREADY_EXISTS(1006, "Slug already exists", HttpStatus.BAD_REQUEST),
 
     // Menu Item Errors
     MENU_ITEM_NOT_EXISTED(1006, "Không tìm thấy món ăn", HttpStatus.NOT_FOUND),

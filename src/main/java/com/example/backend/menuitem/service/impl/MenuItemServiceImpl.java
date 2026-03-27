@@ -1,5 +1,6 @@
 package com.example.backend.menuitem.service.impl;
 
+import com.example.backend.common.DataUtils;
 import com.example.backend.exception.AppException;
 import com.example.backend.exception.ErrorCode;
 import com.example.backend.menuitem.dto.MenuItemRequest;
@@ -29,9 +30,35 @@ public class MenuItemServiceImpl implements MenuItemService {
         var category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
 
+        String slug = DataUtils.toSlug(request.getItemName());
+        if (repository.existsBySlug(slug)) {
+            throw new AppException(ErrorCode.SLUG_ALREADY_EXISTS);
+        }
+
         MenuItem menuItem = mapper.toMenuItem(request);
         menuItem.setCategory(category);
+
         return mapper.toMenuItemResponse(repository.save(menuItem));
+    }
+
+    @Override
+    @Transactional
+    public MenuItemResponse update(Long id, MenuItemRequest request) {
+        MenuItem item = repository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.MENU_ITEM_NOT_EXISTED));
+
+        String newSlug = DataUtils.toSlug(request.getItemName());
+        if (!item.getSlug().equals(newSlug) && repository.existsBySlug(newSlug)) {
+            throw new AppException(ErrorCode.SLUG_ALREADY_EXISTS);
+        }
+
+        var category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
+
+        mapper.updateMenuItem(item, request);
+        item.setCategory(category);
+
+        return mapper.toMenuItemResponse(repository.save(item));
     }
 
     @Override
@@ -49,26 +76,6 @@ public class MenuItemServiceImpl implements MenuItemService {
                 .map(mapper::toMenuItemResponse)
                 .orElseThrow(() -> new AppException(ErrorCode.MENU_ITEM_NOT_EXISTED));
     }
-
-    @Override
-    @Transactional
-    public MenuItemResponse update(Long id, MenuItemRequest request) {
-        MenuItem item = repository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.MENU_ITEM_NOT_EXISTED));
-
-        var category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
-
-        mapper.updateMenuItem(item, request);
-
-        double basePrice = item.getBasePrice() != null ? item.getBasePrice() : 0;
-        int discount = item.getDiscountPercent() != null ? item.getDiscountPercent() : 0;
-        item.setSalePrice(basePrice * (1 - (discount / 100.0)));
-        item.setCategory(category);
-
-        return mapper.toMenuItemResponse(repository.save(item));
-    }
-
     @Override
     @Transactional
     public void delete(Long id) {
