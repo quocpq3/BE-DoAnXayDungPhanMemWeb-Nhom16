@@ -37,6 +37,13 @@ public class MenuItemController {
                 .build();
     }
 
+    @GetMapping("/search")
+    public ApiResponse<List<MenuItemResponse>> findByName(@RequestParam String name) {
+        return ApiResponse.<List<MenuItemResponse>>builder()
+                .result(service.findByName(name))
+                .build();
+    }
+
     @PutMapping("/{id}")
     public ApiResponse<MenuItemResponse> update(@PathVariable Long id, @RequestBody @Valid MenuItemRequest request) {
         return ApiResponse.<MenuItemResponse>builder()

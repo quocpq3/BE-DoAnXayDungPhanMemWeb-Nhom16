@@ -77,4 +77,12 @@ public class MenuCategoryServiceImpl implements MenuCategoryService {
         }
         repository.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MenuCategoryResponse> findByName(String name) {
+        return repository.findByCategoryNameContainingIgnoreCase(name).stream()
+                .map(mapper::toMenuCategoryResponse)
+                .collect(Collectors.toList());
+    }
 }

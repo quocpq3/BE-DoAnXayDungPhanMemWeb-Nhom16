@@ -11,4 +11,5 @@ public interface MenuCategoryService {
     MenuCategoryResponse create(MenuCategoryRequest request);
     MenuCategoryResponse update(Long id, MenuCategoryRequest request);
     void delete(Long id);
+    List<MenuCategoryResponse> findByName(String name);
 }

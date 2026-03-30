@@ -84,4 +84,12 @@ public class MenuItemServiceImpl implements MenuItemService {
         }
         repository.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MenuItemResponse> findByName(String name) {
+        return repository.findByItemNameContainingIgnoreCase(name).stream()
+                .map(mapper::toMenuItemResponse)
+                .collect(Collectors.toList());
+    }
 }
