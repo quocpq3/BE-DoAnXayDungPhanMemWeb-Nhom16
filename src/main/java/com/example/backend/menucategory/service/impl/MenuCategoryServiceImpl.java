@@ -1,5 +1,6 @@
 package com.example.backend.menucategory.service.impl;
 
+import com.example.backend.common.DataUtils;
 import com.example.backend.exception.AppException;
 import com.example.backend.exception.ErrorCode;
 import com.example.backend.menucategory.dto.MenuCategoryRequest;
@@ -38,7 +39,14 @@ public class MenuCategoryServiceImpl implements MenuCategoryService {
     @Override
     @Transactional
     public MenuCategoryResponse create(MenuCategoryRequest request) {
+        String slugToCheck = DataUtils.toSlug(request.getCategoryName());
+
+        if (repository.findBySlug(slugToCheck) != null) {
+            throw new AppException(ErrorCode.SLUG_ALREADY_EXISTS);
+        }
+
         MenuCategory category = mapper.toMenuCategory(request);
+
         return mapper.toMenuCategoryResponse(repository.save(category));
     }
 
@@ -47,7 +55,17 @@ public class MenuCategoryServiceImpl implements MenuCategoryService {
     public MenuCategoryResponse update(Long id, MenuCategoryRequest request) {
         MenuCategory category = repository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
+
+        String newSlug = DataUtils.toSlug(request.getCategoryName());
+
+        if (!category.getSlug().equals(newSlug)) {
+            if (repository.findBySlug(newSlug) != null) {
+                throw new AppException(ErrorCode.SLUG_ALREADY_EXISTS);
+            }
+        }
+
         mapper.updateMenuCategory(category, request);
+
         return mapper.toMenuCategoryResponse(repository.save(category));
     }
 
@@ -58,5 +76,13 @@ public class MenuCategoryServiceImpl implements MenuCategoryService {
             throw new AppException(ErrorCode.CATEGORY_NOT_EXISTED);
         }
         repository.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MenuCategoryResponse> findByName(String name) {
+        return repository.findByCategoryNameContainingIgnoreCase(name).stream()
+                .map(mapper::toMenuCategoryResponse)
+                .collect(Collectors.toList());
     }
 }

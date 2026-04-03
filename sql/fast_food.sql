@@ -1,3 +1,4 @@
+
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
@@ -154,6 +155,78 @@ INSERT INTO `users` (`id`, `name`) VALUES
 --
 -- Constraints for table `combo_details`
 `
+-- --------------------------------------------------------
+--
+-- Table structure for table `orders`
+--
 
+DROP TABLE IF EXISTS `orders`;
+CREATE TABLE IF NOT EXISTS `orders` (
+  `order_id` bigint NOT NULL AUTO_INCREMENT,
+  `order_code` varchar(50) NOT NULL,
+  `customer_name` varchar(100) DEFAULT NULL,
+  `customer_phone` varchar(20) DEFAULT NULL,
+  `status` varchar(30) NOT NULL DEFAULT 'PENDING',
+  `note` text,
+  `total_amount` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`order_id`),
+  UNIQUE KEY `uk_orders_order_code` (`order_code`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+--
+-- Table structure for table `order_details`
+--
+
+DROP TABLE IF EXISTS `order_details`;
+CREATE TABLE IF NOT EXISTS `order_details` (
+  `order_detail_id` bigint NOT NULL AUTO_INCREMENT,
+  `order_id` bigint NOT NULL,
+  `menu_item_id` bigint NOT NULL,
+  `quantity` int NOT NULL,
+  `unit_price` decimal(12,2) NOT NULL,
+  `line_total` decimal(12,2) NOT NULL,
+  PRIMARY KEY (`order_detail_id`),
+  KEY `idx_order_details_order_id` (`order_id`),
+  KEY `idx_order_details_menu_item_id` (`menu_item_id`),
+  CONSTRAINT `fk_order_details_order`
+    FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_order_details_menu_item`
+    FOREIGN KEY (`menu_item_id`) REFERENCES `menu_items` (`item_id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO orders
+(order_code, customer_name, customer_phone, status, note, total_amount)
+VALUES
+('ORD20260329001', 'Nguyễn Minh Tân', '0123456789', 'PENDING', 'Khách mang về', 81050.00),
+('ORD20260329002', 'Trần Văn A', '0988888888', 'COMPLETED', 'Ăn tại quán', 97000.00),
+('ORD20260329003', 'Lê Thị B', '0977777777', 'PENDING', 'Ít đá', 84250.00);
+
+-- --------------------------------------------------------
+--
+-- Dumping data for table `order_details`
+--
+
+INSERT INTO order_details
+(order_id, menu_item_id, quantity, unit_price, line_total)
+VALUES
+(1, 2, 1, 37050.00, 37050.00),
+(1, 3, 1, 25000.00, 25000.00),
+(1, 7, 1, 19000.00, 19000.00),
+(2, 4, 1, 59000.00, 59000.00),
+(2, 8, 2, 19000.00, 38000.00),
+(3, 10, 1, 55250.00, 55250.00),
+(3, 9, 1, 29000.00, 29000.00);
 `OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

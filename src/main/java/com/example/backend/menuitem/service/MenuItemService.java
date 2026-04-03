@@ -11,4 +11,5 @@ public interface MenuItemService {
     MenuItemResponse findById(Long id);
     MenuItemResponse update(Long id, MenuItemRequest request);
     void delete(Long id);
+    List<MenuItemResponse> findByName(String name);
 }

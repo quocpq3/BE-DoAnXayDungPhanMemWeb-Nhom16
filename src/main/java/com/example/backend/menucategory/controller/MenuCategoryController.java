@@ -38,6 +38,13 @@ public class MenuCategoryController {
                 .build();
     }
 
+    @GetMapping("/search")
+    public ApiResponse<List<MenuCategoryResponse>> findByName(@RequestParam String name) {
+        return ApiResponse.<List<MenuCategoryResponse>>builder()
+                .result(service.findByName(name))
+                .build();
+    }
+
     @PutMapping("/{id}")
     public ApiResponse<MenuCategoryResponse> update(
             @PathVariable Long id,
