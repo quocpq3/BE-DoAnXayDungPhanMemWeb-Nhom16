@@ -34,6 +34,7 @@ public class SecurityConfig {
                 //khi ae test xong thì ae bật này để khi có token mới xemdđược nha
 //                request.requestMatchers(HttpMethod.POST, "/users").permitAll()
 //                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+//                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
 //                        // Xóa các dòng .hasRole("ADMIN") ở đây nếu đã dùng @PreAuthorize ở Controller
 //                        .anyRequest().authenticated()
                  );
