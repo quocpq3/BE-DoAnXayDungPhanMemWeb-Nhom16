@@ -4,7 +4,12 @@ import com.example.backend.exception.AppException;
 import com.example.backend.exception.ErrorCode;
 import com.example.backend.menuitem.entity.MenuItem;
 import com.example.backend.menuitem.repository.MenuItemRepository;
+<<<<<<< HEAD
 import com.example.backend.orders.dto.OrderItemRequest;
+=======
+import com.example.backend.orders.dto.OrderDetailRequest;
+import com.example.backend.orders.dto.OrderResponse;
+>>>>>>> origin
 import com.example.backend.orders.dto.OrderRequest;
 import com.example.backend.orders.dto.OrderResponse;
 import com.example.backend.orders.entity.Order;
@@ -14,6 +19,11 @@ import com.example.backend.orders.repository.OrderRepository;
 import com.example.backend.orders.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+<<<<<<< HEAD
+=======
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+>>>>>>> origin
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +51,50 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderMapper.toOrder(request);
         order.setOrderCode(generateOrderCode());
 
+<<<<<<< HEAD
         buildOrderItems(order, request.getItems());
+=======
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            // Ở đây nếu DB bảng Order có cột user_id, bạn có thể set vào:
+            // order.setUserId(auth.getName()); // hoặc tìm user theo username
+            log.info("User {} đang đặt hàng", auth.getName());
+        } else {
+            log.info("Khách vãng lai đang đặt hàng");
+        }
+
+        // 3. Xây dựng chi tiết đơn hàng (Lấy giá từ DB)
+        List<OrderDetail> details = new ArrayList<>();
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        for (OrderDetailRequest itemReq : request.getDetails()) {
+            // Lấy thông tin MenuItem từ Repository của bạn
+            MenuItem menuItem = menuItemRepository.findById(itemReq.getMenuItemId())
+                    .orElseThrow(() -> new AppException(ErrorCode.MENU_ITEM_NOT_EXISTED));
+
+            // Lấy giá bán thực tế trong DB
+            BigDecimal priceInDb = BigDecimal.valueOf(menuItem.getSalePrice());
+
+            OrderDetail detail = OrderDetail.builder()
+                    .order(order)
+                    .menuItemId(menuItem.getItemId())
+                    .quantity(itemReq.getQuantity())
+                    .unitPrice(priceInDb) // Gán giá chuẩn từ DB
+                    .build();
+
+            // Tính tiền từng món
+            BigDecimal lineTotal = priceInDb.multiply(BigDecimal.valueOf(itemReq.getQuantity()));
+            detail.setLineTotal(lineTotal);
+
+            totalAmount = totalAmount.add(lineTotal);
+            details.add(detail);
+        }
+
+        order.setDetails(details);
+        order.setTotalAmount(totalAmount);
+
+        buildOrderDetails(order, request.getDetails());
+>>>>>>> origin
 
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toOrderResponse(savedOrder);
