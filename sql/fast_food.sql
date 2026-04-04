@@ -160,58 +160,109 @@ INSERT INTO `users` (`id`, `name`) VALUES
 -- Table structure for table `orders`
 --
 
-DROP TABLE IF EXISTS `order_details`;
-DROP TABLE IF EXISTS `orders`;
+DROP TABLE IF EXISTS `order_items`;
+DROP TABLE IF EXISTS `order_detail`;
 
-CREATE TABLE `orders` (
-  `order_id` bigint NOT NULL AUTO_INCREMENT,
-  `order_code` varchar(50) NOT NULL,
-  `customer_name` varchar(100) DEFAULT NULL,
-  `customer_phone` varchar(20) DEFAULT NULL,
-  `status` varchar(30) NOT NULL DEFAULT 'PENDING',
-  `note` text,
-  `total_amount` decimal(12,2) NOT NULL DEFAULT '0.00',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE `order_detail` (
+  `order_id` BIGINT NOT NULL AUTO_INCREMENT,
+  `order_code` VARCHAR(50) NOT NULL,
+  `user_id` BIGINT DEFAULT NULL,
+  `customer_name` VARCHAR(100) NOT NULL,
+  `customer_phone` VARCHAR(20) DEFAULT NULL,
+  `delivery_address` VARCHAR(255) DEFAULT NULL,
+  `order_status` VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+  `payment_method` VARCHAR(20) NOT NULL DEFAULT 'CASH',
+  `delivery_method` VARCHAR(20) NOT NULL DEFAULT 'PICKUP',
+  `total_amount` DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+  `note` TEXT DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
   PRIMARY KEY (`order_id`),
-  UNIQUE KEY `uk_orders_order_code` (`order_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `uk_order_detail_order_code` (`order_code`),
+  KEY `idx_order_detail_user_id` (`user_id`),
 
-CREATE TABLE `order_details` (
-  `order_detail_id` bigint NOT NULL AUTO_INCREMENT,
-  `order_id` bigint NOT NULL,
-  `menu_item_id` bigint NOT NULL,
-  `quantity` int NOT NULL,
-  `unit_price` decimal(12,2) NOT NULL,
-  `line_total` decimal(12,2) NOT NULL,
-  PRIMARY KEY (`order_detail_id`),
-  KEY `idx_order_details_order_id` (`order_id`),
-  KEY `idx_order_details_menu_item_id` (`menu_item_id`),
-  CONSTRAINT `fk_order_details_order`
-    FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-  CONSTRAINT `fk_order_details_menu_item`
-    FOREIGN KEY (`menu_item_id`) REFERENCES `menu_items` (`item_id`)
-    ON DELETE RESTRICT
+  CONSTRAINT `fk_order_detail_user`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON DELETE SET NULL
     ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT INTO `orders`
-(`order_code`, `customer_name`, `customer_phone`, `status`, `note`, `total_amount`)
-VALUES
-('ORD20260329001', 'Nguyễn Minh Tân', '0123456789', 'PENDING', 'Khách mang về', 81050.00),
-('ORD20260329002', 'Trần Văn A', '0988888888', 'COMPLETED', 'Ăn tại quán', 97000.00),
-('ORD20260329003', 'Lê Thị B', '0977777777', 'PENDING', 'Ít đá', 84250.00);
 
-INSERT INTO `order_details`
-(`order_id`, `menu_item_id`, `quantity`, `unit_price`, `line_total`)
+CREATE TABLE `order_items` (
+  `order_item_id` BIGINT NOT NULL AUTO_INCREMENT,
+  `order_id` BIGINT NOT NULL,
+  `item_id` BIGINT NOT NULL,
+  `quantity` INT NOT NULL,
+  `unit_price` DECIMAL(12,2) NOT NULL,
+  `line_total` DECIMAL(12,2) NOT NULL,
+
+  PRIMARY KEY (`order_item_id`),
+  KEY `idx_order_items_order_id` (`order_id`),
+  KEY `idx_order_items_item_id` (`item_id`),
+
+  CONSTRAINT `fk_order_items_order_detail`
+    FOREIGN KEY (`order_id`) REFERENCES `order_detail` (`order_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  CONSTRAINT `fk_order_items_menu_item`
+    FOREIGN KEY (`item_id`) REFERENCES `menu_items` (`item_id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+INSERT INTO `order_items`
+(
+  `order_id`,
+  `item_id`,
+  `quantity`,
+  `unit_price`,
+  `line_total`
+)
 VALUES
 (1, 2, 1, 37050.00, 37050.00),
 (1, 3, 1, 25000.00, 25000.00),
 (1, 7, 1, 19000.00, 19000.00),
+
 (2, 4, 1, 59000.00, 59000.00),
-(2, 8, 2, 19000.00, 38000.00),
-(3, 10, 1, 55250.00, 55250.00);
+(2, 8, 2, 19000.00, 38000.00);
+
+INSERT INTO `order_detail`
+(
+  `order_code`,
+  `user_id`,
+  `customer_name`,
+  `customer_phone`,
+  `delivery_address`,
+  `order_status`,
+  `payment_method`,
+  `delivery_method`,
+  `total_amount`,
+  `note`
+)
+VALUES
+(
+  'ORD20260404001',
+  1,
+  'Nguyễn Minh Tân',
+  '0123456789',
+  NULL,
+  'PENDING',
+  'CASH',
+  'PICKUP',
+  81050.00,
+  'Khách đến lấy'
+),
+(
+  'ORD20260404002',
+  2,
+  'Trần Văn A',
+  '0988888888',
+  '12 Trần Hưng Đạo, Long Xuyên',
+  'COMPLETED',
+  'BANK_TRANSFER',
+  'DELIVERY',
+  97000.00,
+  'Giao đi'
+);
 `OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

@@ -12,10 +12,10 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderDetailRequest {
+public class OrderItemRequest {
 
-    @NotNull(message = "MENU_ITEM_ID_REQUIRED")
-    private Long menuItemId;
+    @NotNull(message = "ITEM_ID_REQUIRED")
+    private Long itemId;
 
     @NotNull(message = "QUANTITY_REQUIRED")
     @Min(value = 1, message = "QUANTITY_INVALID")

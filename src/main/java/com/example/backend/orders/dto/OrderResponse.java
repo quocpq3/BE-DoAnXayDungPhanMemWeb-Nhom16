@@ -15,12 +15,15 @@ public class OrderResponse {
 
     private Long orderId;
     private String orderCode;
+    private Long userId;
     private String customerName;
     private String customerPhone;
-    private String status;
-    private String note;
+    private String deliveryAddress;
+    private String orderStatus;
+    private String paymentMethod;
+    private String deliveryMethod;
     private BigDecimal totalAmount;
+    private String note;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private List<OrderDetailResponse> details;
+    private List<OrderItemResponse> items;
 }

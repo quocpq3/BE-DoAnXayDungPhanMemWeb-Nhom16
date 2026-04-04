@@ -1,10 +1,10 @@
 package com.example.backend.orders.service.impl;
 
-import com.example.backend.orders.dto.OrderDetailRequest;
-import com.example.backend.orders.dto.OrderResponse;
+import com.example.backend.orders.dto.OrderItemRequest;
 import com.example.backend.orders.dto.OrderRequest;
+import com.example.backend.orders.dto.OrderResponse;
 import com.example.backend.orders.entity.Order;
-import com.example.backend.orders.entity.OrderDetail;
+import com.example.backend.orders.entity.OrderItem;
 import com.example.backend.orders.mapper.OrderMapper;
 import com.example.backend.orders.repository.OrderRepository;
 import com.example.backend.orders.service.OrderService;
@@ -33,9 +33,8 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = orderMapper.toOrder(request);
         order.setOrderCode(generateOrderCode());
-        order.setStatus("PENDING");
 
-        buildOrderDetails(order, request.getDetails());
+        buildOrderItems(order, request.getItems());
 
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toOrderResponse(savedOrder);
@@ -68,28 +67,28 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void validateOrderRequest(OrderRequest request) {
-        if (request.getDetails() == null || request.getDetails().isEmpty()) {
-            throw new RuntimeException("ORDER_DETAILS_REQUIRED");
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new RuntimeException("ORDER_ITEMS_REQUIRED");
         }
     }
 
-    private void buildOrderDetails(Order order, List<OrderDetailRequest> detailRequests) {
-        List<OrderDetail> details = new ArrayList<>();
+    private void buildOrderItems(Order order, List<OrderItemRequest> itemRequests) {
+        List<OrderItem> items = new ArrayList<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
 
-        for (OrderDetailRequest request : detailRequests) {
-            OrderDetail detail = orderMapper.toOrderDetail(request);
-            detail.setOrder(order);
+        for (OrderItemRequest request : itemRequests) {
+            OrderItem item = orderMapper.toOrderItem(request);
+            item.setOrder(order);
 
             BigDecimal lineTotal = request.getUnitPrice()
                     .multiply(BigDecimal.valueOf(request.getQuantity()));
 
-            detail.setLineTotal(lineTotal);
+            item.setLineTotal(lineTotal);
             totalAmount = totalAmount.add(lineTotal);
-            details.add(detail);
+            items.add(item);
         }
 
-        order.setDetails(details);
+        order.setItems(items);
         order.setTotalAmount(totalAmount);
     }
 

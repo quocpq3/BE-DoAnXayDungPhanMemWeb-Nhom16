@@ -9,10 +9,10 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderDetailResponse {
+public class OrderItemResponse {
 
-    private Long orderDetailId;
-    private Long menuItemId;
+    private Long orderItemId;
+    private Long itemId;
     private Integer quantity;
     private BigDecimal unitPrice;
     private BigDecimal lineTotal;
