@@ -1,5 +1,9 @@
 package com.example.backend.orders.service.impl;
 
+import com.example.backend.exception.AppException;
+import com.example.backend.exception.ErrorCode;
+import com.example.backend.menuitem.entity.MenuItem;
+import com.example.backend.menuitem.repository.MenuItemRepository;
 import com.example.backend.orders.dto.OrderItemRequest;
 import com.example.backend.orders.dto.OrderRequest;
 import com.example.backend.orders.dto.OrderResponse;
@@ -9,6 +13,7 @@ import com.example.backend.orders.mapper.OrderMapper;
 import com.example.backend.orders.repository.OrderRepository;
 import com.example.backend.orders.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +27,12 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final MenuItemRepository menuItemRepository;
 
     @Override
     public OrderResponse create(OrderRequest request) {
@@ -76,14 +83,22 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> items = new ArrayList<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
 
-        for (OrderItemRequest request : itemRequests) {
-            OrderItem item = orderMapper.toOrderItem(request);
-            item.setOrder(order);
+        for (OrderItemRequest itemReq : itemRequests) {
+            MenuItem menuItem = menuItemRepository.findById(itemReq.getItemId())
+                    .orElseThrow(() -> new AppException(ErrorCode.MENU_ITEM_NOT_EXISTED));
 
-            BigDecimal lineTotal = request.getUnitPrice()
-                    .multiply(BigDecimal.valueOf(request.getQuantity()));
+            BigDecimal priceInDb = BigDecimal.valueOf(menuItem.getSalePrice());
 
+            OrderItem item = OrderItem.builder()
+                    .order(order)
+                    .itemId(menuItem.getItemId())
+                    .quantity(itemReq.getQuantity())
+                    .unitPrice(priceInDb)
+                    .build();
+
+            BigDecimal lineTotal = priceInDb.multiply(BigDecimal.valueOf(itemReq.getQuantity()));
             item.setLineTotal(lineTotal);
+
             totalAmount = totalAmount.add(lineTotal);
             items.add(item);
         }
