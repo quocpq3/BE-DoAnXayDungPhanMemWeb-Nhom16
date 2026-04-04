@@ -162,6 +162,8 @@ INSERT INTO `users` (`id`, `name`) VALUES
 
 DROP TABLE IF EXISTS `order_items`;
 DROP TABLE IF EXISTS `order_detail`;
+DROP TABLE IF EXISTS `order_details`;
+DROP TABLE IF EXISTS `orders`;
 
 CREATE TABLE `order_detail` (
   `order_id` BIGINT NOT NULL AUTO_INCREMENT,
