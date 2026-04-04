@@ -30,6 +30,25 @@ public enum ErrorCode {
     COMBO_ID_NULL(1013, "ID Combo không được để trống", HttpStatus.BAD_REQUEST),
     COMPONENT_ID_NULL(1014, "ID món thành phần không được để trống", HttpStatus.BAD_REQUEST),
     QUANTITY_INVALID(1015, "Số lượng món trong combo phải ít nhất là 1", HttpStatus.BAD_REQUEST),
+
+    // Order Errors
+    ORDER_NOT_FOUND(1016, "Không tìm thấy đơn hàng", HttpStatus.NOT_FOUND),
+    ORDER_DETAILS_REQUIRED(1017, "Đơn hàng phải có ít nhất một món ăn", HttpStatus.BAD_REQUEST),
+
+    // Review & Rating Errors
+    NOT_PURCHASED(1018, "Bạn phải mua và thanh toán món ăn này mới có thể đánh giá", HttpStatus.FORBIDDEN),
+    REVIEW_NOT_FOUND(1019, "Không tìm thấy đánh giá này", HttpStatus.NOT_FOUND),
+    CUSTOMER_PHONE_REQUIRED(1020, "Số điện thoại khách hàng không được để trống", HttpStatus.BAD_REQUEST),
+    MENU_ITEM_ID_REQUIRED(1021, "Mã món ăn không được để trống", HttpStatus.BAD_REQUEST),
+    RATING_INVALID(1022, "Số sao đánh giá phải từ 1 đến 5", HttpStatus.BAD_REQUEST),
+
+    // Validation Errors
+    REVIEW_COMMENT_REQUIRED(1023, "Nội dung đánh giá không được để trống", HttpStatus.BAD_REQUEST),
+    ADMIN_REPLY_REQUIRED(1024, "Nội dung phản hồi không được để trống", HttpStatus.BAD_REQUEST),
+
+    // File Errors
+    FILE_TOO_LARGE(1025, "Kích thước file quá lớn (Tối đa 10MB)", HttpStatus.PAYLOAD_TOO_LARGE),
+    ;
     ;
 
     ErrorCode(int code, String message, HttpStatus statusCode) {
