@@ -43,7 +43,7 @@ public class SecurityConfig {
                 oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
                         .jwtAuthenticationConverter(jwtAuthenticationConverter()))
         );
-
+        http.cors(org.springframework.security.config.Customizer.withDefaults());
         http.csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
