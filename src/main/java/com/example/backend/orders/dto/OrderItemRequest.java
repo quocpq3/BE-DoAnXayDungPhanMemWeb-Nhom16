@@ -1,11 +1,8 @@
 package com.example.backend.orders.dto;
 
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -14,14 +11,10 @@ import java.math.BigDecimal;
 @Builder
 public class OrderItemRequest {
 
-    @NotNull(message = "ITEM_ID_REQUIRED")
+    @NotNull(message = "itemId không được để trống")
     private Long itemId;
 
-    @NotNull(message = "QUANTITY_REQUIRED")
-    @Min(value = 1, message = "QUANTITY_INVALID")
+    @NotNull(message = "quantity không được để trống")
+    @Min(value = 1, message = "Số lượng phải lớn hơn 0")
     private Integer quantity;
-
-    @NotNull(message = "UNIT_PRICE_REQUIRED")
-    @DecimalMin(value = "0.0", inclusive = false, message = "UNIT_PRICE_INVALID")
-    private BigDecimal unitPrice;
 }

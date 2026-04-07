@@ -129,6 +129,37 @@ INSERT INTO `menu_items` (`item_id`, `category_id`, `item_name`, `slug`, `descri
 -- Table structure for table `users`
 --
 
+
+DROP TABLE IF EXISTS `payments`;
+CREATE TABLE IF NOT EXISTS `payments` (
+                                          `payment_id` bigint NOT NULL AUTO_INCREMENT,
+                                          `order_id` bigint NOT NULL,
+                                          `transaction_id` varchar(255) DEFAULT NULL,
+    `payment_method` varchar(255) DEFAULT NULL,
+    `amount` decimal(38,2) DEFAULT NULL,
+    `status` varchar(255) DEFAULT NULL,
+    `payment_date` datetime DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`payment_id`),
+    KEY `FKjvm1wv27g1k37fxvr9k1yb9db` (`order_id`)
+    ) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `payments`
+--
+
+INSERT INTO `payments` (`payment_id`, `order_id`, `transaction_id`, `payment_method`, `amount`, `status`, `payment_date`) VALUES
+                                                                                                                              (1, 1, 'VNP12345678', 'VNPAY', 81050.00, 'SUCCESS', '2026-04-05 04:48:07'),
+                                                                                                                              (2, 2, NULL, 'CASH', 97000.00, 'SUCCESS', '2026-04-05 04:54:13'),
+                                                                                                                              (3, 108, 'MOMO_TEST_123456', 'MOMO', 160000.00, 'SUCCESS', '2026-04-05 05:00:37'),
+                                                                                                                              (4, 109, 'CASH_109_1775365249519', 'CASH', 930000.00, 'SUCCESS', '2026-04-05 05:00:50'),
+                                                                                                                              (5, 110, '123456789', 'MOMO', 950000.00, 'SUCCESS', '2026-04-05 07:14:25'),
+                                                                                                                              (6, 111, 'CASH_ORD-326569', 'CASH', 790000.00, 'SUCCESS', '2026-04-05 07:14:58'),
+                                                                                                                              (7, 112, 'CASH_ORD-8708610', 'CASH', 130000.00, 'SUCCESS', '2026-04-05 07:16:43'),
+                                                                                                                              (8, 113, 'CASH_ORD-6073611', 'CASH', 910000.00, 'SUCCESS', '2026-04-05 07:19:32'),
+                                                                                                                              (9, 114, 'MM_ORD-7021212_1775373635187', 'MOMO', 810000.00, 'SUCCESS', '2026-04-05 07:20:35'),
+                                                                                                                              (10, 115, 'MM_ORD-8741313_1775373904264', 'MOMO', 980000.00, 'SUCCESS', '2026-04-05 07:25:04');
+COMMIT;
+
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
   `id` bigint NOT NULL AUTO_INCREMENT,

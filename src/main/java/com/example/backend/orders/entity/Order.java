@@ -18,34 +18,33 @@ public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id")
     private Long orderId;
 
-    @Column(name="order_code", nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String orderCode;
 
     @Column
     private Long userId;
 
-    @Column(name= "customer_name",nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String customerName;
 
-    @Column(name= "customer_phone",length = 20)
+    @Column(length = 20)
     private String customerPhone;
 
-    @Column(name= "delivery_address",length = 255)
+    @Column(length = 255)
     private String deliveryAddress;
 
-    @Column(name= "order_status",nullable = false, length = 30)
+    @Column(nullable = false, length = 30)
     private String orderStatus;
 
-    @Column(name="payment_method",nullable = false, length = 20)
+    @Column(nullable = false, length = 20)
     private String paymentMethod;
 
-    @Column(name="delivery_method",nullable = false, length = 20)
+    @Column(nullable = false, length = 20)
     private String deliveryMethod;
 
-    @Column(name="total_amount",nullable = false, precision = 12, scale = 2)
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
 
     @Column(columnDefinition = "TEXT")
