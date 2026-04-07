@@ -16,6 +16,7 @@ public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_item_id")
     private Long orderItemId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,13 +26,13 @@ public class OrderItem {
     @Column(name = "item_id", nullable = false)
     private Long itemId;
 
-    @Column(nullable = false)
+    @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false, precision = 12, scale = 2)
+    @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal unitPrice;
 
-    @Column(nullable = false, precision = 12, scale = 2)
+    @Column(name = "line_total", nullable = false, precision = 12, scale = 2)
     private BigDecimal lineTotal;
 
     @PrePersist

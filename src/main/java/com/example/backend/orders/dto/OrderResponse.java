@@ -12,7 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class OrderResponse {
-
     private Long orderId;
     private String orderCode;
     private Long userId;
