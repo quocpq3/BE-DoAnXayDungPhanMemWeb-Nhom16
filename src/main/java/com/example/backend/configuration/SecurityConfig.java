@@ -23,26 +23,26 @@ import javax.crypto.spec.SecretKeySpec;
 @EnableMethodSecurity // Cho phép dùng @PreAuthorize trên Controller sau này
 public class SecurityConfig {
 
-   
+
     private final String SIGNER_KEY = "1234567890qwertyuiopasdfghjklzxcvbnm1234567890qwertyuiopasdfghjklzxcvbnm";
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(request ->
-                request.anyRequest().permitAll()// này ae khi nào muon test trên triình duyệt thì  thì bật na ko thì comment
+//                request.anyRequest().permitAll() // này ae khi nào muon test trên triình duyệt thì  thì bật na ko thì comment
 
                 //khi ae test xong thì ae bật này để khi có token mới xemdđược nha
-//                request.requestMatchers(HttpMethod.POST, "/users").permitAll()
-//                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-//                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
-//                        // Xóa các dòng .hasRole("ADMIN") ở đây nếu đã dùng @PreAuthorize ở Controller
-//                        .anyRequest().authenticated()
+                request.requestMatchers(HttpMethod.POST, "/users").permitAll()
+                       .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
+                        // Xóa các dòng .hasRole("ADMIN") ở đây nếu đã dùng @PreAuthorize ở Controller
+                        .anyRequest().authenticated()
                  );
 
-//        http.oauth2ResourceServer(oauth2 ->
-//                oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
-//                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-//        );
+        http.oauth2ResourceServer(oauth2 ->
+                oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
+                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+        );
 
         http.csrf(AbstractHttpConfigurer::disable);
         return http.build();

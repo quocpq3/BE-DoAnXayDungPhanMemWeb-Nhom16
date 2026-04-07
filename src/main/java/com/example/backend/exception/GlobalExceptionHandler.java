@@ -51,14 +51,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
 
-    //Bắt lỗi file quá kích thước
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<ApiResponse> handleMaxSizeException(MaxUploadSizeExceededException exc) {
-        return ResponseEntity
-                .status(HttpStatus.PAYLOAD_TOO_LARGE)
-                .body(ApiResponse.builder()
-                        .code(ErrorCode.FILE_TOO_LARGE.getCode())
-                        .message(ErrorCode.FILE_TOO_LARGE.getMessage())
-                        .build());
-    }
+
 }

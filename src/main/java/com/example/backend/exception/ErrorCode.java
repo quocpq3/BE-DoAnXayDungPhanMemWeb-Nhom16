@@ -8,6 +8,9 @@ public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Lỗi không xác định", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_KEY(1002, "Thông báo lỗi không hợp lệ (Invalid message key)", HttpStatus.BAD_REQUEST),
 
+    // Security & Auth
+    UNAUTHORIZED(2001, "Bạn không có quyền chỉnh sửa đánh giá của người khác", HttpStatus.FORBIDDEN),
+
     // User Errors
     USER_NOT_EXISTED(1001, "Người dùng không tồn tại", HttpStatus.NOT_FOUND),
 
@@ -35,19 +38,10 @@ public enum ErrorCode {
     ORDER_NOT_FOUND(1016, "Không tìm thấy đơn hàng", HttpStatus.NOT_FOUND),
     ORDER_DETAILS_REQUIRED(1017, "Đơn hàng phải có ít nhất một món ăn", HttpStatus.BAD_REQUEST),
 
-    // Review & Rating Errors
-    NOT_PURCHASED(1018, "Bạn phải mua và thanh toán món ăn này mới có thể đánh giá", HttpStatus.FORBIDDEN),
-    REVIEW_NOT_FOUND(1019, "Không tìm thấy đánh giá này", HttpStatus.NOT_FOUND),
-    CUSTOMER_PHONE_REQUIRED(1020, "Số điện thoại khách hàng không được để trống", HttpStatus.BAD_REQUEST),
-    MENU_ITEM_ID_REQUIRED(1021, "Mã món ăn không được để trống", HttpStatus.BAD_REQUEST),
-    RATING_INVALID(1022, "Số sao đánh giá phải từ 1 đến 5", HttpStatus.BAD_REQUEST),
+    // --- Lỗi cho Module Payment ---
+    ALREADY_PAID(2002, "Đơn hàng này đã được thanh toán trước đó", HttpStatus.BAD_REQUEST),
+    TRANSACTION_ID_REQUIRED(2003, "Bắt buộc phải có mã giao dịch",HttpStatus.BAD_REQUEST),
 
-    // Validation Errors
-    REVIEW_COMMENT_REQUIRED(1023, "Nội dung đánh giá không được để trống", HttpStatus.BAD_REQUEST),
-    ADMIN_REPLY_REQUIRED(1024, "Nội dung phản hồi không được để trống", HttpStatus.BAD_REQUEST),
-
-    // File Errors
-    FILE_TOO_LARGE(1025, "Kích thước file quá lớn (Tối đa 10MB)", HttpStatus.PAYLOAD_TOO_LARGE),
     ;
     ;
 
