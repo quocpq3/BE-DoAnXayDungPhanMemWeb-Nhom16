@@ -29,14 +29,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(request ->
-                request.anyRequest().permitAll() // này ae khi nào muon test trên triình duyệt thì  thì bật na ko thì comment
+//                request.anyRequest().permitAll() // này ae khi nào muon test trên triình duyệt thì  thì bật na ko thì comment
 
                 //khi ae test xong thì ae bật này để khi có token mới xemdđược nha
-//                request.requestMatchers(HttpMethod.POST, "/users").permitAll()
-//                       .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-//                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
-//                        // Xóa các dòng .hasRole("ADMIN") ở đây nếu đã dùng @PreAuthorize ở Controller
-//                        .anyRequest().authenticated()
+                request.requestMatchers(HttpMethod.POST, "/users").permitAll()
+                       .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
+                        // Xóa các dòng .hasRole("ADMIN") ở đây nếu đã dùng @PreAuthorize ở Controller
+                        .anyRequest().authenticated()
                  );
 
         http.oauth2ResourceServer(oauth2 ->
