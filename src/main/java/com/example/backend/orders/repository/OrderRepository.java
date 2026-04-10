@@ -13,11 +13,15 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     boolean existsByOrderCode(String orderCode);
-    @Query("SELECT COUNT(o) > 0 FROM Order o JOIN o.items i " +
-            "WHERE o.customerPhone = :phone " +
-            "AND i.itemId = :itemId " +
-            "AND o.orderStatus = 'PAID'")
-    boolean existsByPurchased(@Param("phone") String phone, @Param("itemId") Long itemId);
+    @Query("""
+SELECT COUNT(o) > 0 
+FROM Order o 
+JOIN o.items i 
+WHERE o.customerPhone = :phone 
+AND i.menuItem.itemId = :itemId 
+AND o.orderStatus = 'PAID'
+""")
+    boolean existsByPurchased(String phone, Long itemId);
     @Override
     @EntityGraph(attributePaths = {"items", "items.menuItem"})
     List<Order> findAll();
