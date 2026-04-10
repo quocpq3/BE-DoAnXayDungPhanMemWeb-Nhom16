@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -18,6 +19,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "AND o.orderStatus = 'PAID'")
     boolean existsByPurchased(@Param("phone") String phone, @Param("itemId") Long itemId);
     @Override
-    @EntityGraph(attributePaths = {"items"})
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
     List<Order> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
+    Optional<Order> findById(Long id);
+
+    long countByOrderCodeStartingWith(String prefix);
 }

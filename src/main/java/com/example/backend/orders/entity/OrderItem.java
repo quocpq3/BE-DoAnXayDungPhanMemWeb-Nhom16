@@ -1,5 +1,6 @@
 package com.example.backend.orders.entity;
 
+import com.example.backend.menuitem.entity.MenuItem;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,8 +24,9 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @Column(name = "item_id", nullable = false)
-    private Long itemId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id", nullable = false)
+    private MenuItem menuItem;
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
