@@ -18,8 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -73,7 +73,7 @@ public class OrderServiceImpl implements OrderService {
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
-                    .itemId(menuItem.getItemId())
+                    .menuItem(menuItem)
                     .quantity(itemRequest.getQuantity())
                     .unitPrice(unitPrice)
                     .lineTotal(lineTotal)
@@ -116,29 +116,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderResponse toResponse(Order order) {
-        List<Long> itemIds = order.getItems().stream()
-                .map(OrderItem::getItemId)
-                .distinct()
-                .toList();
-
-        Map<Long, MenuItem> menuItemMap = menuItemRepository.findAllById(itemIds)
-                .stream()
-                .collect(Collectors.toMap(MenuItem::getItemId, m -> m));
-
         List<OrderItemResponse> itemResponses = order.getItems().stream()
-                .map(item -> {
-                    MenuItem menuItem = menuItemMap.get(item.getItemId());
-
-                    return OrderItemResponse.builder()
-                            .orderItemId(item.getOrderItemId())
-                            .itemId(item.getItemId())
-                            .itemName(menuItem != null ? menuItem.getItemName() : null)
-                            .imageUrl(menuItem != null ? menuItem.getImageUrl() : null)
-                            .quantity(item.getQuantity())
-                            .unitPrice(item.getUnitPrice())
-                            .lineTotal(item.getLineTotal())
-                            .build();
-                })
+                .map(item -> OrderItemResponse.builder()
+                        .orderItemId(item.getOrderItemId())
+                        .itemId(item.getMenuItem() != null ? item.getMenuItem().getItemId() : null)
+                        .itemName(item.getMenuItem() != null ? item.getMenuItem().getItemName() : null)
+                        .imageUrl(item.getMenuItem() != null ? item.getMenuItem().getImageUrl() : null)
+                        .quantity(item.getQuantity())
+                        .unitPrice(item.getUnitPrice())
+                        .lineTotal(item.getLineTotal())
+                        .build())
                 .toList();
 
         return OrderResponse.builder()
@@ -165,11 +152,7 @@ public class OrderServiceImpl implements OrderService {
                 + String.format("%02d", today.getMonthValue())
                 + String.format("%02d", today.getDayOfMonth());
 
-        long count = orderRepository.findAll().stream()
-                .filter(o -> o.getOrderCode() != null && o.getOrderCode().startsWith(prefix))
-                .count();
-
+        long count = orderRepository.countByOrderCodeStartingWith(prefix);
         return prefix + String.format("%03d", count + 1);
     }
 }
-//haha
