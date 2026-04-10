@@ -1,11 +1,12 @@
+
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Máy chủ: 127.0.0.1:3306
--- Thời gian đã tạo: Th4 07, 2026 lúc 02:11 PM
--- Phiên bản máy phục vụ: 9.1.0
--- Phiên bản PHP: 8.3.14
+-- Host: 127.0.0.1:3306
+-- Generation Time: Mar 25, 2026 at 03:10 PM
+-- Server version: 9.1.0
+-- PHP Version: 8.3.14
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +19,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Cơ sở dữ liệu: `fast_food`
+-- Database: `fast_food`
 --
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `combo_details`
+-- Table structure for table `combo_details`
 --
 
 DROP TABLE IF EXISTS `combo_details`;
@@ -37,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `combo_details` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `combo_details`
+-- Dumping data for table `combo_details`
 --
 
 INSERT INTO `combo_details` (`combo_item_id`, `component_item_id`, `quantity`) VALUES
@@ -54,7 +55,7 @@ INSERT INTO `combo_details` (`combo_item_id`, `component_item_id`, `quantity`) V
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `menu_categories`
+-- Table structure for table `menu_categories`
 --
 
 DROP TABLE IF EXISTS `menu_categories`;
@@ -69,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `menu_categories` (
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `menu_categories`
+-- Dumping data for table `menu_categories`
 --
 
 INSERT INTO `menu_categories` (`category_id`, `category_name`, `slug`, `description`, `created_at`) VALUES
@@ -82,7 +83,7 @@ INSERT INTO `menu_categories` (`category_id`, `category_name`, `slug`, `descript
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `menu_items`
+-- Table structure for table `menu_items`
 --
 
 DROP TABLE IF EXISTS `menu_items`;
@@ -105,7 +106,7 @@ CREATE TABLE IF NOT EXISTS `menu_items` (
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `menu_items`
+-- Dumping data for table `menu_items`
 --
 
 INSERT INTO `menu_items` (`item_id`, `category_id`, `item_name`, `slug`, `description`, `image_url`, `base_price`, `discount_percent`, `sale_price`, `is_available`, `is_combo`, `created_at`) VALUES
@@ -125,71 +126,39 @@ INSERT INTO `menu_items` (`item_id`, `category_id`, `item_name`, `slug`, `descri
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `order_detail`
+-- Table structure for table `users`
 --
 
-DROP TABLE IF EXISTS `order_detail`;
-CREATE TABLE IF NOT EXISTS `order_detail` (
-  `order_id` bigint NOT NULL AUTO_INCREMENT,
-  `order_code` varchar(50) NOT NULL,
-  `user_id` bigint DEFAULT NULL,
-  `customer_name` varchar(100) NOT NULL,
-  `customer_phone` varchar(20) DEFAULT NULL,
-  `delivery_address` varchar(255) DEFAULT NULL,
-  `order_status` varchar(30) NOT NULL DEFAULT 'PENDING',
-  `payment_method` varchar(20) NOT NULL DEFAULT 'CASH',
-  `delivery_method` varchar(20) NOT NULL DEFAULT 'PICKUP',
-  `total_amount` decimal(12,2) NOT NULL DEFAULT '0.00',
-  `note` text,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`order_id`),
-  UNIQUE KEY `uk_order_detail_order_code` (`order_code`),
-  KEY `idx_order_detail_user_id` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+DROP TABLE IF EXISTS `payments`;
+CREATE TABLE IF NOT EXISTS `payments` (
+                                          `payment_id` bigint NOT NULL AUTO_INCREMENT,
+                                          `order_id` bigint NOT NULL,
+                                          `transaction_id` varchar(255) DEFAULT NULL,
+    `payment_method` varchar(255) DEFAULT NULL,
+    `amount` decimal(38,2) DEFAULT NULL,
+    `status` varchar(255) DEFAULT NULL,
+    `payment_date` datetime DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`payment_id`),
+    KEY `FKjvm1wv27g1k37fxvr9k1yb9db` (`order_id`)
+    ) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `order_detail`
+-- Dumping data for table `payments`
 --
 
-INSERT INTO `order_detail` (`order_id`, `order_code`, `user_id`, `customer_name`, `customer_phone`, `delivery_address`, `order_status`, `payment_method`, `delivery_method`, `total_amount`, `note`, `created_at`) VALUES
-(7, 'ORD20260404001', 1, 'Nguyễn Minh Tân', '0123456789', NULL, 'PENDING', 'CASH', 'PICKUP', 81050.00, 'Khách đến lấy', '2026-04-04 19:15:13'),
-(8, 'ORD20260404002', 2, 'Trần Văn A', '0988888888', '12 Trần Hưng Đạo, Long Xuyên', 'COMPLETED', 'BANK_TRANSFER', 'DELIVERY', 97000.00, 'Giao đi', '2026-04-04 19:15:13');
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `order_items`
---
-
-DROP TABLE IF EXISTS `order_items`;
-CREATE TABLE IF NOT EXISTS `order_items` (
-  `order_item_id` bigint NOT NULL AUTO_INCREMENT,
-  `order_id` bigint NOT NULL,
-  `item_id` bigint NOT NULL,
-  `quantity` int NOT NULL,
-  `unit_price` decimal(12,2) NOT NULL,
-  `line_total` decimal(12,2) NOT NULL,
-  PRIMARY KEY (`order_item_id`),
-  KEY `idx_order_items_order_id` (`order_id`),
-  KEY `idx_order_items_item_id` (`item_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Đang đổ dữ liệu cho bảng `order_items`
---
-
-INSERT INTO `order_items` (`order_item_id`, `order_id`, `item_id`, `quantity`, `unit_price`, `line_total`) VALUES
-(16, 7, 2, 1, 37050.00, 37050.00),
-(17, 7, 3, 1, 25000.00, 25000.00),
-(18, 7, 7, 1, 19000.00, 19000.00),
-(19, 8, 4, 1, 59000.00, 59000.00),
-(20, 8, 8, 2, 19000.00, 38000.00);
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `users`
---
+INSERT INTO `payments` (`payment_id`, `order_id`, `transaction_id`, `payment_method`, `amount`, `status`, `payment_date`) VALUES
+                                                                                                                              (1, 1, 'VNP12345678', 'VNPAY', 81050.00, 'SUCCESS', '2026-04-05 04:48:07'),
+                                                                                                                              (2, 2, NULL, 'CASH', 97000.00, 'SUCCESS', '2026-04-05 04:54:13'),
+                                                                                                                              (3, 108, 'MOMO_TEST_123456', 'MOMO', 160000.00, 'SUCCESS', '2026-04-05 05:00:37'),
+                                                                                                                              (4, 109, 'CASH_109_1775365249519', 'CASH', 930000.00, 'SUCCESS', '2026-04-05 05:00:50'),
+                                                                                                                              (5, 110, '123456789', 'MOMO', 950000.00, 'SUCCESS', '2026-04-05 07:14:25'),
+                                                                                                                              (6, 111, 'CASH_ORD-326569', 'CASH', 790000.00, 'SUCCESS', '2026-04-05 07:14:58'),
+                                                                                                                              (7, 112, 'CASH_ORD-8708610', 'CASH', 130000.00, 'SUCCESS', '2026-04-05 07:16:43'),
+                                                                                                                              (8, 113, 'CASH_ORD-6073611', 'CASH', 910000.00, 'SUCCESS', '2026-04-05 07:19:32'),
+                                                                                                                              (9, 114, 'MM_ORD-7021212_1775373635187', 'MOMO', 810000.00, 'SUCCESS', '2026-04-05 07:20:35'),
+                                                                                                                              (10, 115, 'MM_ORD-8741313_1775373904264', 'MOMO', 980000.00, 'SUCCESS', '2026-04-05 07:25:04');
+COMMIT;
 
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
@@ -199,7 +168,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `users`
+-- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`id`, `name`) VALUES
@@ -211,36 +180,120 @@ INSERT INTO `users` (`id`, `name`) VALUES
 (8, 'Thầy Hansi Flick ');
 
 --
--- Các ràng buộc cho các bảng đã đổ
+-- Constraints for dumped tables
 --
 
 --
--- Các ràng buộc cho bảng `combo_details`
+-- Constraints for table `combo_details`
+`
+-- --------------------------------------------------------
 --
-ALTER TABLE `combo_details`
-  ADD CONSTRAINT `fk_combo_component` FOREIGN KEY (`component_item_id`) REFERENCES `menu_items` (`item_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_combo_parent` FOREIGN KEY (`combo_item_id`) REFERENCES `menu_items` (`item_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+-- Table structure for table `orders`
+--
 
---
--- Các ràng buộc cho bảng `menu_items`
---
-ALTER TABLE `menu_items`
-  ADD CONSTRAINT `fk_menu_item_category` FOREIGN KEY (`category_id`) REFERENCES `menu_categories` (`category_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+DROP TABLE IF EXISTS `order_items`;
+DROP TABLE IF EXISTS `order_detail`;
 
---
--- Các ràng buộc cho bảng `order_detail`
---
-ALTER TABLE `order_detail`
-  ADD CONSTRAINT `fk_order_detail_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+CREATE TABLE `order_detail` (
+  `order_id` BIGINT NOT NULL AUTO_INCREMENT,
+  `order_code` VARCHAR(50) NOT NULL,
+  `user_id` BIGINT DEFAULT NULL,
+  `customer_name` VARCHAR(100) NOT NULL,
+  `customer_phone` VARCHAR(20) DEFAULT NULL,
+  `delivery_address` VARCHAR(255) DEFAULT NULL,
+  `order_status` VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+  `payment_method` VARCHAR(20) NOT NULL DEFAULT 'CASH',
+  `delivery_method` VARCHAR(20) NOT NULL DEFAULT 'PICKUP',
+  `total_amount` DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+  `note` TEXT DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
---
--- Các ràng buộc cho bảng `order_items`
---
-ALTER TABLE `order_items`
-  ADD CONSTRAINT `fk_order_items_menu_item` FOREIGN KEY (`item_id`) REFERENCES `menu_items` (`item_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_order_items_order_detail` FOREIGN KEY (`order_id`) REFERENCES `order_detail` (`order_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-COMMIT;
+  PRIMARY KEY (`order_id`),
+  UNIQUE KEY `uk_order_detail_order_code` (`order_code`),
+  KEY `idx_order_detail_user_id` (`user_id`),
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+  CONSTRAINT `fk_order_detail_user`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `order_items` (
+  `order_item_id` BIGINT NOT NULL AUTO_INCREMENT,
+  `order_id` BIGINT NOT NULL,
+  `item_id` BIGINT NOT NULL,
+  `quantity` INT NOT NULL,
+  `unit_price` DECIMAL(12,2) NOT NULL,
+  `line_total` DECIMAL(12,2) NOT NULL,
+
+  PRIMARY KEY (`order_item_id`),
+  KEY `idx_order_items_order_id` (`order_id`),
+  KEY `idx_order_items_item_id` (`item_id`),
+
+  CONSTRAINT `fk_order_items_order_detail`
+    FOREIGN KEY (`order_id`) REFERENCES `order_detail` (`order_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  CONSTRAINT `fk_order_items_menu_item`
+    FOREIGN KEY (`item_id`) REFERENCES `menu_items` (`item_id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+INSERT INTO `order_items`
+(
+  `order_id`,
+  `item_id`,
+  `quantity`,
+  `unit_price`,
+  `line_total`
+)
+VALUES
+(1, 2, 1, 37050.00, 37050.00),
+(1, 3, 1, 25000.00, 25000.00),
+(1, 7, 1, 19000.00, 19000.00),
+
+(2, 4, 1, 59000.00, 59000.00),
+(2, 8, 2, 19000.00, 38000.00);
+
+INSERT INTO `order_detail`
+(
+  `order_code`,
+  `user_id`,
+  `customer_name`,
+  `customer_phone`,
+  `delivery_address`,
+  `order_status`,
+  `payment_method`,
+  `delivery_method`,
+  `total_amount`,
+  `note`
+)
+VALUES
+(
+  'ORD20260404001',
+  1,
+  'Nguyễn Minh Tân',
+  '0123456789',
+  NULL,
+  'PENDING',
+  'CASH',
+  'PICKUP',
+  81050.00,
+  'Khách đến lấy'
+),
+(
+  'ORD20260404002',
+  2,
+  'Trần Văn A',
+  '0988888888',
+  '12 Trần Hưng Đạo, Long Xuyên',
+  'COMPLETED',
+  'BANK_TRANSFER',
+  'DELIVERY',
+  97000.00,
+  'Giao đi'
+);
+`OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

@@ -33,13 +33,16 @@ public class AuthenticationService {
 
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        User user = userRepository.findByName(request.getName())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        // Kiểm tra xem password gửi lên có giống password băm trong DB không
+        User user = userRepository.findByName(request.getName())
+                .orElseThrow(() -> {
+                    return new AppException(ErrorCode.USER_NOT_EXISTED);
+                });
+
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
         if (!authenticated) {
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION); // Mật khẩu sai
+
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
 
         var token = generateToken(user); // Đúng pass thì tạo thẻ bài
