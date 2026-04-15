@@ -77,12 +77,13 @@ public class AuthenticationService {
         }
     }
 
+
     private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
         if (user.getRoles() != null && !user.getRoles().isEmpty()) {
             user.getRoles().forEach(role -> {
-                // Đảm bảo có ROLE_ ở đây
-                stringJoiner.add("ROLE_" + role.getName());
+
+                stringJoiner.add(role.getName());
             });
         }
         return stringJoiner.toString();

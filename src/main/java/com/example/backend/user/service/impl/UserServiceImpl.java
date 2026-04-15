@@ -65,12 +65,15 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (!user.getName().equals(request.getName()) &&
-                userRepository.existsByName(request.getName())) {
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        // 1. Map các thông tin cơ bản
+        userMapper.updateUser(user, request);
+
+        // 2. Logic cập nhật Role (Nếu có gửi lên)
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            var roles = roleRepository.findByNameIn(request.getRoles());
+            user.setRoles(new HashSet<>(roles));
         }
 
-        userMapper.updateUser(user, request);
         return userMapper.toUserResponse(userRepository.save(user));
     }
 

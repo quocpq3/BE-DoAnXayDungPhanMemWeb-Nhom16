@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,4 +14,5 @@ import lombok.experimental.FieldDefaults;
 public class UserUpdateRequest {
     @NotBlank(message = "Name cannot be empty")
     String name;
+    List<String> roles; // Thêm dòng này để nhận danh sách quyền mới từ Admin
 }

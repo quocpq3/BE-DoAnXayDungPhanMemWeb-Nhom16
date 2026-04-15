@@ -47,7 +47,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    // Yêu cầu đăng nhập mới được sửa thông tin
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<UserResponse> updateUser(
             @PathVariable Long userId,
             @RequestBody @Valid UserUpdateRequest request) {
