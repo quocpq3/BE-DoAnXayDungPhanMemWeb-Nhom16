@@ -28,16 +28,28 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(request ->
-                request.requestMatchers(HttpMethod.POST, "/users").permitAll() // Cho phép đăng ký
-                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll() // Cho phép đăng nhập
-                        .anyRequest().authenticated() // Tất cả các request khác PHẢI có Token
+
+                request.requestMatchers(HttpMethod.POST, "/auth/login", "/auth/introspect").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/users").permitAll() // Cho phép đăng ký
+
+
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/items/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/combo-details/**").permitAll()
+
+
+                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
+
+                        .anyRequest().authenticated()
         );
 
+        // Cấu hình OAuth2 và JWT (Giữ nguyên phần bạn đã làm)
         http.oauth2ResourceServer(oauth2 ->
                 oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
                         .jwtAuthenticationConverter(jwtAuthenticationConverter()))
         );
 
+        // Bật CORS để Frontend gọi được API và tắt CSRF
         http.cors(org.springframework.security.config.Customizer.withDefaults());
         http.csrf(AbstractHttpConfigurer::disable);
 
