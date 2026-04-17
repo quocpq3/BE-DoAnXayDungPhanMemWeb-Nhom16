@@ -1,23 +1,25 @@
 package com.example.backend.orders.service.impl;
 
-import com.example.backend.orders.dto.OrderDetailRequest;
-import com.example.backend.orders.dto.OrderResponse;
+import com.example.backend.menuitem.entity.MenuItem;
+import com.example.backend.menuitem.repository.MenuItemRepository;
+import com.example.backend.orders.dto.OrderItemRequest;
+import com.example.backend.orders.dto.OrderItemResponse;
 import com.example.backend.orders.dto.OrderRequest;
+import com.example.backend.orders.dto.OrderResponse;
 import com.example.backend.orders.entity.Order;
-import com.example.backend.orders.entity.OrderDetail;
-import com.example.backend.orders.mapper.OrderMapper;
+import com.example.backend.orders.entity.OrderItem;
 import com.example.backend.orders.repository.OrderRepository;
 import com.example.backend.orders.service.OrderService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -25,20 +27,67 @@ import java.util.concurrent.ThreadLocalRandom;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderMapper orderMapper;
+    private final MenuItemRepository menuItemRepository;
 
     @Override
     public OrderResponse create(OrderRequest request) {
-        validateOrderRequest(request);
-
-        Order order = orderMapper.toOrder(request);
+        Order order = new Order();
         order.setOrderCode(generateOrderCode());
-        order.setStatus("PENDING");
+        order.setUserId(request.getUserId());
+        order.setCustomerName(request.getCustomerName());
+        order.setCustomerPhone(request.getCustomerPhone());
+        order.setDeliveryAddress(request.getDeliveryAddress());
+        order.setOrderStatus("PENDING");
+        order.setPaymentMethod(
+                request.getPaymentMethod() != null && !request.getPaymentMethod().isBlank()
+                        ? request.getPaymentMethod()
+                        : "CASH"
+        );
+        order.setDeliveryMethod(
+                request.getDeliveryMethod() != null && !request.getDeliveryMethod().isBlank()
+                        ? request.getDeliveryMethod()
+                        : "PICKUP"
+        );
+        order.setNote(request.getNote());
+        order.setCreatedAt(LocalDateTime.now());
 
-        buildOrderDetails(order, request.getDetails());
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        List<OrderItem> orderItems = new ArrayList<>();
 
-        Order savedOrder = orderRepository.save(order);
-        return orderMapper.toOrderResponse(savedOrder);
+        for (OrderItemRequest itemRequest : request.getItems()) {
+            MenuItem menuItem = menuItemRepository.findById(itemRequest.getItemId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Không tìm thấy món với id = " + itemRequest.getItemId()
+                    ));
+
+            Double priceValue = menuItem.getSalePrice() != null
+                    ? menuItem.getSalePrice()
+                    : menuItem.getBasePrice();
+
+            if (priceValue == null) {
+                throw new IllegalArgumentException("Món " + menuItem.getItemName() + " chưa có giá");
+            }
+
+            BigDecimal unitPrice = BigDecimal.valueOf(priceValue);
+            BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
+
+            OrderItem orderItem = OrderItem.builder()
+                    .order(order)
+                    .menuItem(menuItem)
+                    .quantity(itemRequest.getQuantity())
+                    .unitPrice(unitPrice)
+                    .lineTotal(lineTotal)
+                    .build();
+
+            orderItems.add(orderItem);
+            totalAmount = totalAmount.add(lineTotal);
+        }
+
+        order.setItems(orderItems);
+        order.setTotalAmount(totalAmount);
+
+        Order saved = orderRepository.save(order);
+        return toResponse(saved);
     }
 
     @Override
@@ -46,7 +95,7 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderResponse> findAll() {
         return orderRepository.findAll()
                 .stream()
-                .map(orderMapper::toOrderResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -54,58 +103,56 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public OrderResponse findById(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("ORDER_NOT_FOUND"));
-
-        return orderMapper.toOrderResponse(order);
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id));
+        return toResponse(order);
     }
 
     @Override
     public void delete(Long id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("ORDER_NOT_FOUND"));
-
-        orderRepository.delete(order);
+        if (!orderRepository.existsById(id)) {
+            throw new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id);
+        }
+        orderRepository.deleteById(id);
     }
 
-    private void validateOrderRequest(OrderRequest request) {
-        if (request.getDetails() == null || request.getDetails().isEmpty()) {
-            throw new RuntimeException("ORDER_DETAILS_REQUIRED");
-        }
-    }
+    private OrderResponse toResponse(Order order) {
+        List<OrderItemResponse> itemResponses = order.getItems().stream()
+                .map(item -> OrderItemResponse.builder()
+                        .orderItemId(item.getOrderItemId())
+                        .itemId(item.getMenuItem() != null ? item.getMenuItem().getItemId() : null)
+                        .itemName(item.getMenuItem() != null ? item.getMenuItem().getItemName() : null)
+                        .imageUrl(item.getMenuItem() != null ? item.getMenuItem().getImageUrl() : null)
+                        .quantity(item.getQuantity())
+                        .unitPrice(item.getUnitPrice())
+                        .lineTotal(item.getLineTotal())
+                        .build())
+                .toList();
 
-    private void buildOrderDetails(Order order, List<OrderDetailRequest> detailRequests) {
-        List<OrderDetail> details = new ArrayList<>();
-        BigDecimal totalAmount = BigDecimal.ZERO;
-
-        for (OrderDetailRequest request : detailRequests) {
-            OrderDetail detail = orderMapper.toOrderDetail(request);
-            detail.setOrder(order);
-
-            BigDecimal lineTotal = request.getUnitPrice()
-                    .multiply(BigDecimal.valueOf(request.getQuantity()));
-
-            detail.setLineTotal(lineTotal);
-            totalAmount = totalAmount.add(lineTotal);
-            details.add(detail);
-        }
-
-        order.setDetails(details);
-        order.setTotalAmount(totalAmount);
+        return OrderResponse.builder()
+                .orderId(order.getOrderId())
+                .orderCode(order.getOrderCode())
+                .userId(order.getUserId())
+                .customerName(order.getCustomerName())
+                .customerPhone(order.getCustomerPhone())
+                .deliveryAddress(order.getDeliveryAddress())
+                .orderStatus(order.getOrderStatus())
+                .paymentMethod(order.getPaymentMethod())
+                .deliveryMethod(order.getDeliveryMethod())
+                .totalAmount(order.getTotalAmount())
+                .note(order.getNote())
+                .createdAt(order.getCreatedAt())
+                .items(itemResponses)
+                .build();
     }
 
     private String generateOrderCode() {
-        String prefix = "ORD";
-        String timePart = LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        int randomPart = ThreadLocalRandom.current().nextInt(100, 1000);
+        LocalDate today = LocalDate.now();
+        String prefix = "ORD"
+                + today.getYear()
+                + String.format("%02d", today.getMonthValue())
+                + String.format("%02d", today.getDayOfMonth());
 
-        String orderCode = prefix + timePart + randomPart;
-
-        while (orderRepository.existsByOrderCode(orderCode)) {
-            randomPart = ThreadLocalRandom.current().nextInt(100, 1000);
-            orderCode = prefix + timePart + randomPart;
-        }
-
-        return orderCode;
+        long count = orderRepository.countByOrderCodeStartingWith(prefix);
+        return prefix + String.format("%03d", count + 1);
     }
 }

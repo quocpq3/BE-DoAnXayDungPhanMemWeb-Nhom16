@@ -1,7 +1,8 @@
 package com.example.backend.orders.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
 import java.util.List;
@@ -13,14 +14,18 @@ import java.util.List;
 @Builder
 public class OrderRequest {
 
-    @Size(max = 100, message = "CUSTOMER_NAME_INVALID")
+    private Long userId;
+
+    @NotBlank(message = "customerName không được để trống")
     private String customerName;
 
-    @Size(max = 20, message = "CUSTOMER_PHONE_INVALID")
     private String customerPhone;
-
+    private String deliveryAddress;
+    private String paymentMethod;
+    private String deliveryMethod;
     private String note;
 
     @Valid
-    private List<OrderDetailRequest> details;
+    @NotEmpty(message = "Danh sách món không được rỗng")
+    private List<OrderItemRequest> items;
 }

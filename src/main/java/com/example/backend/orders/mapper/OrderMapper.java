@@ -1,14 +1,10 @@
 package com.example.backend.orders.mapper;
 
-import com.example.backend.orders.dto.OrderDetailRequest;
-import com.example.backend.orders.dto.OrderDetailResponse;
-import com.example.backend.orders.dto.OrderRequest;
-import com.example.backend.orders.dto.OrderResponse;
+import com.example.backend.orders.dto.*;
 import com.example.backend.orders.entity.Order;
-import com.example.backend.orders.entity.OrderDetail;
+import com.example.backend.orders.entity.OrderItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
@@ -17,21 +13,23 @@ public interface OrderMapper {
 
     @Mapping(target = "orderId", ignore = true)
     @Mapping(target = "orderCode", ignore = true)
-    @Mapping(target = "status", ignore = true)
     @Mapping(target = "totalAmount", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "details", ignore = true)
+    @Mapping(target = "items", ignore = true)
     Order toOrder(OrderRequest request);
 
-    @Mapping(target = "orderDetailId", ignore = true)
+    @Mapping(target = "orderItemId", ignore = true)
     @Mapping(target = "order", ignore = true)
+    @Mapping(target = "menuItem", ignore = true)
     @Mapping(target = "lineTotal", ignore = true)
-    OrderDetail toOrderDetail(OrderDetailRequest request);
+    OrderItem toOrderItem(OrderItemRequest request);
 
-    OrderDetailResponse toOrderDetailResponse(OrderDetail detail);
+    @Mapping(target = "itemId", source = "menuItem.itemId")
+    @Mapping(target = "itemName", source = "menuItem.itemName")
+    @Mapping(target = "imageUrl", source = "menuItem.imageUrl")
+    OrderItemResponse toOrderItemResponse(OrderItem item);
 
-    List<OrderDetailResponse> toOrderDetailResponseList(List<OrderDetail> details);
+    List<OrderItemResponse> toOrderItemResponseList(List<OrderItem> items);
 
     OrderResponse toOrderResponse(Order order);
 }

@@ -8,6 +8,9 @@ public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Lỗi không xác định", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_KEY(1002, "Thông báo lỗi không hợp lệ (Invalid message key)", HttpStatus.BAD_REQUEST),
 
+    // Security & Auth
+    UNAUTHORIZED(2001, "Bạn không có quyền chỉnh sửa đánh giá của người khác", HttpStatus.FORBIDDEN),
+
     // User Errors
     USER_NOT_EXISTED(1001, "Người dùng không tồn tại", HttpStatus.NOT_FOUND),
 
@@ -30,6 +33,16 @@ public enum ErrorCode {
     COMBO_ID_NULL(1013, "ID Combo không được để trống", HttpStatus.BAD_REQUEST),
     COMPONENT_ID_NULL(1014, "ID món thành phần không được để trống", HttpStatus.BAD_REQUEST),
     QUANTITY_INVALID(1015, "Số lượng món trong combo phải ít nhất là 1", HttpStatus.BAD_REQUEST),
+
+    // Order Errors
+    ORDER_NOT_FOUND(1016, "Không tìm thấy đơn hàng", HttpStatus.NOT_FOUND),
+    ORDER_DETAILS_REQUIRED(1017, "Đơn hàng phải có ít nhất một món ăn", HttpStatus.BAD_REQUEST),
+
+    // --- Lỗi cho Module Payment ---
+    ALREADY_PAID(2002, "Đơn hàng này đã được thanh toán trước đó", HttpStatus.BAD_REQUEST),
+    TRANSACTION_ID_REQUIRED(2003, "Bắt buộc phải có mã giao dịch",HttpStatus.BAD_REQUEST),
+
+    ;
     ;
 
     ErrorCode(int code, String message, HttpStatus statusCode) {
