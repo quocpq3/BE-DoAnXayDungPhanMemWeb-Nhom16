@@ -33,58 +33,21 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse create(OrderRequest request) {
         Order order = new Order();
         order.setOrderCode(generateOrderCode());
-        order.setUserId(request.getUserId());
-        order.setCustomerName(request.getCustomerName());
-        order.setCustomerPhone(request.getCustomerPhone());
-        order.setDeliveryAddress(request.getDeliveryAddress());
-        order.setOrderStatus("PENDING");
-        order.setPaymentMethod(
-                request.getPaymentMethod() != null && !request.getPaymentMethod().isBlank()
-                        ? request.getPaymentMethod()
-                        : "CASH"
-        );
-        order.setDeliveryMethod(
-                request.getDeliveryMethod() != null && !request.getDeliveryMethod().isBlank()
-                        ? request.getDeliveryMethod()
-                        : "PICKUP"
-        );
-        order.setNote(request.getNote());
         order.setCreatedAt(LocalDateTime.now());
+        order.setOrderStatus("PENDING");
 
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        List<OrderItem> orderItems = new ArrayList<>();
+        applyOrderData(order, request);
 
-        for (OrderItemRequest itemRequest : request.getItems()) {
-            MenuItem menuItem = menuItemRepository.findById(itemRequest.getItemId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "Không tìm thấy món với id = " + itemRequest.getItemId()
-                    ));
+        Order saved = orderRepository.save(order);
+        return toResponse(saved);
+    }
 
-            Double priceValue = menuItem.getSalePrice() != null
-                    ? menuItem.getSalePrice()
-                    : menuItem.getBasePrice();
+    @Override
+    public OrderResponse update(Long id, OrderRequest request) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id));
 
-            if (priceValue == null) {
-                throw new IllegalArgumentException("Món " + menuItem.getItemName() + " chưa có giá");
-            }
-
-            BigDecimal unitPrice = BigDecimal.valueOf(priceValue);
-            BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
-
-            OrderItem orderItem = OrderItem.builder()
-                    .order(order)
-                    .menuItem(menuItem)
-                    .quantity(itemRequest.getQuantity())
-                    .unitPrice(unitPrice)
-                    .lineTotal(lineTotal)
-                    .build();
-
-            orderItems.add(orderItem);
-            totalAmount = totalAmount.add(lineTotal);
-        }
-
-        order.setItems(orderItems);
-        order.setTotalAmount(totalAmount);
+        applyOrderData(order, request);
 
         Order saved = orderRepository.save(order);
         return toResponse(saved);
@@ -113,6 +76,67 @@ public class OrderServiceImpl implements OrderService {
             throw new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id);
         }
         orderRepository.deleteById(id);
+    }
+
+    private void applyOrderData(Order order, OrderRequest request) {
+        order.setUserId(request.getUserId());
+        order.setCustomerName(request.getCustomerName());
+        order.setCustomerPhone(request.getCustomerPhone());
+        order.setDeliveryAddress(request.getDeliveryAddress());
+        order.setPaymentMethod(
+                request.getPaymentMethod() != null && !request.getPaymentMethod().isBlank()
+                        ? request.getPaymentMethod()
+                        : "CASH"
+        );
+        order.setDeliveryMethod(
+                request.getDeliveryMethod() != null && !request.getDeliveryMethod().isBlank()
+                        ? request.getDeliveryMethod()
+                        : "PICKUP"
+        );
+        order.setNote(request.getNote());
+
+        List<OrderItem> orderItems = buildOrderItems(order, request.getItems());
+        BigDecimal totalAmount = orderItems.stream()
+                .map(OrderItem::getLineTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        order.getItems().clear();
+        order.getItems().addAll(orderItems);
+        order.setTotalAmount(totalAmount);
+    }
+
+    private List<OrderItem> buildOrderItems(Order order, List<OrderItemRequest> itemRequests) {
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        for (OrderItemRequest itemRequest : itemRequests) {
+            MenuItem menuItem = menuItemRepository.findById(itemRequest.getItemId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Không tìm thấy món với id = " + itemRequest.getItemId()
+                    ));
+
+            Double priceValue = menuItem.getSalePrice() != null
+                    ? menuItem.getSalePrice()
+                    : menuItem.getBasePrice();
+
+            if (priceValue == null) {
+                throw new IllegalArgumentException("Món " + menuItem.getItemName() + " chưa có giá");
+            }
+
+            BigDecimal unitPrice = BigDecimal.valueOf(priceValue);
+            BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
+
+            OrderItem orderItem = OrderItem.builder()
+                    .order(order)
+                    .menuItem(menuItem)
+                    .quantity(itemRequest.getQuantity())
+                    .unitPrice(unitPrice)
+                    .lineTotal(lineTotal)
+                    .build();
+
+            orderItems.add(orderItem);
+        }
+
+        return orderItems;
     }
 
     private OrderResponse toResponse(Order order) {
