@@ -24,6 +24,14 @@ public class OrderController {
                 .build();
     }
 
+    @PutMapping("/{id}")
+    public ApiResponse<OrderResponse> update(@PathVariable Long id,
+                                             @RequestBody @Valid OrderRequest request) {
+        return ApiResponse.<OrderResponse>builder()
+                .result(service.update(id, request))
+                .build();
+    }
+
     @GetMapping
     public ApiResponse<List<OrderResponse>> getAll() {
         return ApiResponse.<List<OrderResponse>>builder()
@@ -46,4 +54,3 @@ public class OrderController {
                 .build();
     }
 }
-//up commit
