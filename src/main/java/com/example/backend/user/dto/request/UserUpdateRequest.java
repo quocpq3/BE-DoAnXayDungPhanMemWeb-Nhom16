@@ -14,5 +14,8 @@ import java.util.List;
 public class UserUpdateRequest {
     @NotBlank(message = "Name cannot be empty")
     String name;
-    List<String> roles; // Thêm dòng này để nhận danh sách quyền mới từ Admin
+    List<String> roles;
+    String phone;
+    String address;
+    String email;
 }
