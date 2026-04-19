@@ -20,7 +20,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // Quan trọng để @PreAuthorize hoạt động
+//@EnableMethodSecurity // mo them dong nay
 public class SecurityConfig {
 
     private final String SIGNER_KEY = "1234567890qwertyuiopasdfghjklzxcvbnm1234567890qwertyuiopasdfghjklzxcvbnm";
@@ -28,18 +28,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(request ->
-                request.requestMatchers(HttpMethod.POST, "/auth/login", "/auth/introspect").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/users").permitAll()
+//                làm xong ae mở code này ra nha
 
-                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/items/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/combo-details/**").permitAll()
+//                request.requestMatchers(HttpMethod.POST, "/auth/login", "/auth/introspect").permitAll()
+//                        .requestMatchers(HttpMethod.POST, "/users").permitAll()
+//
+//                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+//                        .requestMatchers(HttpMethod.GET, "/api/items/**").permitAll()
+//                        .requestMatchers(HttpMethod.GET, "/api/combo-details/**").permitAll()
+//
+//
+//                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
+//                        .requestMatchers(HttpMethod.GET, "/api/orders/**").permitAll()
+//
+//                        .anyRequest().authenticated()
 
-
-                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/orders/**").permitAll()
-
-                        .anyRequest().authenticated()
+                        request.anyRequest().permitAll() // và xóa này
         );
 
         // Cấu hình OAuth2 và JWT (Giữ nguyên phần bạn đã làm)
