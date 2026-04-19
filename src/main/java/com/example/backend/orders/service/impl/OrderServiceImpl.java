@@ -20,11 +20,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class OrderServiceImpl implements OrderService {
+
+    private static final Set<String> ALLOWED_ORDER_STATUSES =
+            Set.of("PENDING", "PAID", "COMPLETED", "CANCELLED");
 
     private final OrderRepository orderRepository;
     private final MenuItemRepository menuItemRepository;
@@ -34,7 +38,6 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setOrderCode(generateOrderCode());
         order.setCreatedAt(LocalDateTime.now());
-        order.setOrderStatus("PENDING");
 
         applyOrderData(order, request);
 
@@ -48,6 +51,17 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id));
 
         applyOrderData(order, request);
+
+        Order saved = orderRepository.save(order);
+        return toResponse(saved);
+    }
+
+    @Override
+    public OrderResponse updateStatus(Long id, String orderStatus) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id));
+
+        order.setOrderStatus(normalizeOrderStatus(orderStatus));
 
         Order saved = orderRepository.save(order);
         return toResponse(saved);
@@ -83,16 +97,20 @@ public class OrderServiceImpl implements OrderService {
         order.setCustomerName(request.getCustomerName());
         order.setCustomerPhone(request.getCustomerPhone());
         order.setDeliveryAddress(request.getDeliveryAddress());
+        order.setOrderStatus(normalizeOrderStatus(request.getOrderStatus()));
+
         order.setPaymentMethod(
                 request.getPaymentMethod() != null && !request.getPaymentMethod().isBlank()
-                        ? request.getPaymentMethod()
+                        ? request.getPaymentMethod().trim().toUpperCase()
                         : "CASH"
         );
+
         order.setDeliveryMethod(
                 request.getDeliveryMethod() != null && !request.getDeliveryMethod().isBlank()
-                        ? request.getDeliveryMethod()
+                        ? request.getDeliveryMethod().trim().toUpperCase()
                         : "PICKUP"
         );
+
         order.setNote(request.getNote());
 
         List<OrderItem> orderItems = buildOrderItems(order, request.getItems());
@@ -103,6 +121,22 @@ public class OrderServiceImpl implements OrderService {
         order.getItems().clear();
         order.getItems().addAll(orderItems);
         order.setTotalAmount(totalAmount);
+    }
+
+    private String normalizeOrderStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "PENDING";
+        }
+
+        String normalized = status.trim().toUpperCase();
+
+        if (!ALLOWED_ORDER_STATUSES.contains(normalized)) {
+            throw new IllegalArgumentException(
+                    "orderStatus không hợp lệ. Chỉ chấp nhận: PENDING, PAID, COMPLETED, CANCELLED"
+            );
+        }
+
+        return normalized;
     }
 
     private List<OrderItem> buildOrderItems(Order order, List<OrderItemRequest> itemRequests) {

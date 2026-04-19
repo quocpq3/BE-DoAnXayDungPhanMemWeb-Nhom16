@@ -3,6 +3,7 @@ package com.example.backend.orders.controller;
 import com.example.backend.common.ApiResponse;
 import com.example.backend.orders.dto.OrderRequest;
 import com.example.backend.orders.dto.OrderResponse;
+import com.example.backend.orders.dto.OrderStatusRequest;
 import com.example.backend.orders.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,14 @@ public class OrderController {
                                              @RequestBody @Valid OrderRequest request) {
         return ApiResponse.<OrderResponse>builder()
                 .result(service.update(id, request))
+                .build();
+    }
+
+    @PatchMapping("/{id}/status")
+    public ApiResponse<OrderResponse> updateStatus(@PathVariable Long id,
+                                                   @RequestBody @Valid OrderStatusRequest request) {
+        return ApiResponse.<OrderResponse>builder()
+                .result(service.updateStatus(id, request.getOrderStatus()))
                 .build();
     }
 
