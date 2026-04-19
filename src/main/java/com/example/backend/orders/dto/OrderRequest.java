@@ -3,6 +3,7 @@ package com.example.backend.orders.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.util.List;
@@ -21,6 +22,13 @@ public class OrderRequest {
 
     private String customerPhone;
     private String deliveryAddress;
+
+    @Pattern(
+            regexp = "^(?i)(PENDING|PAID|COMPLETED|CANCELLED)$",
+            message = "orderStatus chỉ được là PENDING, PAID, COMPLETED hoặc CANCELLED"
+    )
+    private String orderStatus;
+
     private String paymentMethod;
     private String deliveryMethod;
     private String note;

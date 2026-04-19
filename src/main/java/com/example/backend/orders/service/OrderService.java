@@ -8,6 +8,7 @@ import java.util.List;
 public interface OrderService {
     OrderResponse create(OrderRequest request);
     OrderResponse update(Long id, OrderRequest request);
+    OrderResponse updateStatus(Long id, String orderStatus);
     List<OrderResponse> findAll();
     OrderResponse findById(Long id);
     void delete(Long id);
