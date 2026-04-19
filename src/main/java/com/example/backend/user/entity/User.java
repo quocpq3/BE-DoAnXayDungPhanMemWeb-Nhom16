@@ -19,6 +19,10 @@ public class User {
     Long id;
     String name;
     String password;
+    String phone;
+    String address;
+    @Column(unique = true)
+    String email;
 
     @ManyToMany
     @JoinTable(

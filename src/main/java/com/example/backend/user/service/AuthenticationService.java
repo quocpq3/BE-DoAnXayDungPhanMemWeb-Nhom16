@@ -34,7 +34,7 @@ public class AuthenticationService {
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
 
-        User user = userRepository.findByName(request.getName())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> {
                     return new AppException(ErrorCode.USER_NOT_EXISTED);
                 });
@@ -59,7 +59,7 @@ public class AuthenticationService {
 
         // Tạo thông tin thẻ bài (hạn dùng 1 tiếng)
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getName())
+                .subject(user.getEmail())
                 .issuer("com.example.backend")
                 .issueTime(new Date())
                 .expirationTime(new Date(Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()))

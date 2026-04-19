@@ -13,7 +13,9 @@ import java.util.Set;
 public class UserResponse {
     Long id;
     String name;
-
-    // Thêm dòng này để trả về danh sách tên quyền (VD: ["ROLE_USER", "ROLE_ADMIN"])
+    String phone;
+    String address;
+    String email;
+    // Thêm dòng này để trả về danh sách tên quyền  ["ROLE_USER", "ROLE_ADMIN"]
     Set<String> roles;
 }

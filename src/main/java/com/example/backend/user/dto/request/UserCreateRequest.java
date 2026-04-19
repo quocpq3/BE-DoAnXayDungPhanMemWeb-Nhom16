@@ -13,7 +13,10 @@ import lombok.experimental.FieldDefaults;
 public class UserCreateRequest {
 
     @NotBlank(message = "INVALID_KEY")
-//    @Size(min = 3, message = "Name must be at least 3 characters")
+
     String name;
     String password;
+    String phone;
+    String address;
+    String email;
 }

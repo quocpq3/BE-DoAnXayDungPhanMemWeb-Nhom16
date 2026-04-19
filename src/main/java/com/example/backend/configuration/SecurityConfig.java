@@ -28,10 +28,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(request ->
-
                 request.requestMatchers(HttpMethod.POST, "/auth/login", "/auth/introspect").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/users").permitAll() // Cho phép đăng ký
-
+                        .requestMatchers(HttpMethod.POST, "/users").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/items/**").permitAll()
@@ -39,6 +37,7 @@ public class SecurityConfig {
 
 
                         .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/orders/**").permitAll()
 
                         .anyRequest().authenticated()
         );
