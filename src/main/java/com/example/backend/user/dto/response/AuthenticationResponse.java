@@ -11,4 +11,5 @@ import lombok.experimental.FieldDefaults;
 public class AuthenticationResponse {
     String token; // Đây là thẻ đi qua các API
     boolean authenticated; // Báo true nếu mật khẩu đúng
+    UserResponse user;
 }

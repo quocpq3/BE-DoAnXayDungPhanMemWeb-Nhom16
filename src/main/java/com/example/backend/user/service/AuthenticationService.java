@@ -1,7 +1,9 @@
 package com.example.backend.user.service;
 
+
 import com.example.backend.user.dto.request.AuthenticationRequest;
 import com.example.backend.user.dto.response.AuthenticationResponse;
+import com.example.backend.user.dto.response.UserResponse;
 import com.example.backend.user.entity.User;
 import com.example.backend.exception.AppException;
 import com.example.backend.exception.ErrorCode;
@@ -19,6 +21,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,9 +50,21 @@ public class AuthenticationService {
 
         var token = generateToken(user); // Đúng pass thì tạo thẻ bài
 
+        UserResponse userResponse = UserResponse.builder()
+                .id(user.getId())
+                .name(user.getName())   // Frontend sẽ dùng cái này hiện "Xin chào"
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .address(user.getAddress())
+                .roles(user.getRoles().stream()
+                        .map(role -> role.getName())
+                        .collect(Collectors.toSet()))
+                .build();
+
         return AuthenticationResponse.builder()
                 .token(token)
                 .authenticated(true)
+                .user(userResponse)
                 .build();
     }
 
