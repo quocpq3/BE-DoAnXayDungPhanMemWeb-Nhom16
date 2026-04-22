@@ -65,4 +65,5 @@ public class UserController {
                 .result("User has been deleted successfully")
                 .build();
     }
+
 }
