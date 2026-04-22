@@ -1,5 +1,7 @@
 package com.example.backend.orders.service.impl;
 
+import com.example.backend.exception.AppException;
+import com.example.backend.exception.ErrorCode;
 import com.example.backend.menuitem.entity.MenuItem;
 import com.example.backend.menuitem.repository.MenuItemRepository;
 import com.example.backend.orders.dto.OrderItemRequest;
@@ -12,7 +14,6 @@ import com.example.backend.orders.repository.OrderRepository;
 import com.example.backend.orders.service.OrderService;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -39,40 +40,64 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse create(OrderRequest request) {
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new AppException(ErrorCode.ORDER_DETAILS_REQUIRED);
+        }
+
         Order order = new Order();
-        order.setOrderCode(generateOrderCode());
         order.setCreatedAt(LocalDateTime.now());
+
+        // chống trùng order_code
+        order.setOrderCode(generateOrderCode());
 
         applyOrderData(order, request, true);
 
-        Order saved = orderRepository.saveAndFlush(order);
-        return toResponse(saved);
+        try {
+            Order saved = orderRepository.saveAndFlush(order);
+            return toResponse(saved);
+        } catch (DataIntegrityViolationException ex) {
+            // nếu dính unique order_code hoặc FK/schema khác
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
     }
 
     @Override
     public OrderResponse update(Long id, OrderRequest request) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
         String currentStatus = normalizeStatusForComparison(order.getOrderStatus());
         if ("PAID".equals(currentStatus) || "COMPLETED".equals(currentStatus)) {
-            throw new IllegalStateException("Không thể sửa toàn bộ đơn hàng đã thanh toán hoặc đã hoàn thành");
+            throw new AppException(ErrorCode.ALREADY_PAID);
+        }
+
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new AppException(ErrorCode.ORDER_DETAILS_REQUIRED);
         }
 
         applyOrderData(order, request, false);
 
-        Order saved = orderRepository.saveAndFlush(order);
-        return toResponse(saved);
+        try {
+            Order saved = orderRepository.saveAndFlush(order);
+            return toResponse(saved);
+        } catch (DataIntegrityViolationException ex) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
     }
 
     @Override
     public OrderResponse updateStatus(Long id, String orderStatus) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
         order.setOrderStatus(resolveOrderStatus(orderStatus, order.getOrderStatus()));
-        Order saved = orderRepository.saveAndFlush(order);
-        return toResponse(saved);
+
+        try {
+            Order saved = orderRepository.saveAndFlush(order);
+            return toResponse(saved);
+        } catch (DataIntegrityViolationException ex) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
     }
 
     @Override
@@ -88,38 +113,40 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public OrderResponse findById(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
         return toResponse(order);
     }
 
     @Override
     public void delete(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
         String currentStatus = normalizeStatusForComparison(order.getOrderStatus());
         if ("PAID".equals(currentStatus) || "COMPLETED".equals(currentStatus)) {
-            throw new IllegalStateException("Không thể xóa đơn hàng đã thanh toán hoặc đã hoàn thành");
+            throw new AppException(ErrorCode.ALREADY_PAID);
         }
 
         try {
             orderRepository.delete(order);
             orderRepository.flush();
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalStateException("Không thể xóa đơn hàng vì đang được liên kết với dữ liệu khác");
+            throw new AppException(ErrorCode.ALREADY_PAID);
         }
     }
 
     private void applyOrderData(Order order, OrderRequest request, boolean isCreate) {
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Không tìm thấy user với id = " + request.getUserId()
-                ));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         order.setUser(user);
 
-        // Giữ tương thích schema DB cũ
-        order.setCustomerName(user.getName());
+        // đồng bộ dữ liệu cũ để không vỡ schema DB hiện tại
+        order.setCustomerName(
+                user.getName() != null && !user.getName().isBlank()
+                        ? user.getName().trim()
+                        : "Khách hàng"
+        );
         order.setCustomerPhone(user.getPhone());
 
         String incomingAddress = normalizeText(request.getDeliveryAddress());
@@ -131,12 +158,17 @@ public class OrderServiceImpl implements OrderService {
             order.setDeliveryAddress(user.getAddress());
         }
 
-        order.setOrderStatus(resolveOrderStatus(request.getOrderStatus(), isCreate ? null : order.getOrderStatus()));
+        order.setOrderStatus(resolveOrderStatus(
+                request.getOrderStatus(),
+                isCreate ? null : order.getOrderStatus()
+        ));
+
         order.setPaymentMethod(resolveTextOrDefault(
                 request.getPaymentMethod(),
                 isCreate ? null : order.getPaymentMethod(),
                 "CASH"
         ));
+
         order.setDeliveryMethod(resolveTextOrDefault(
                 request.getDeliveryMethod(),
                 isCreate ? null : order.getDeliveryMethod(),
@@ -167,10 +199,9 @@ public class OrderServiceImpl implements OrderService {
 
         String normalized = incomingStatus.trim().toUpperCase();
         if (!ALLOWED_ORDER_STATUSES.contains(normalized)) {
-            throw new IllegalArgumentException(
-                    "orderStatus không hợp lệ. Chỉ chấp nhận: PENDING, PAID, COMPLETED, CANCELLED"
-            );
+            throw new AppException(ErrorCode.INVALID_KEY);
         }
+
         return normalized;
     }
 
@@ -203,16 +234,14 @@ public class OrderServiceImpl implements OrderService {
 
         for (OrderItemRequest itemRequest : itemRequests) {
             MenuItem menuItem = menuItemRepository.findById(itemRequest.getItemId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "Không tìm thấy món với id = " + itemRequest.getItemId()
-                    ));
+                    .orElseThrow(() -> new AppException(ErrorCode.MENU_ITEM_NOT_EXISTED));
 
             Double priceValue = menuItem.getSalePrice() != null
                     ? menuItem.getSalePrice()
                     : menuItem.getBasePrice();
 
-            if (priceValue == null) {
-                throw new IllegalArgumentException("Món " + menuItem.getItemName() + " chưa có giá");
+            if (priceValue == null || priceValue < 0) {
+                throw new AppException(ErrorCode.PRICE_INVALID);
             }
 
             BigDecimal unitPrice = BigDecimal.valueOf(priceValue);
