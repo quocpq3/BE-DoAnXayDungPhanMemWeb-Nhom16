@@ -102,7 +102,6 @@ public class OrderServiceImpl implements OrderService {
                 ));
 
         order.setUser(user);
-        order.setCustomerPhone(request.getCustomerPhone());
         order.setDeliveryAddress(request.getDeliveryAddress());
         order.setOrderStatus(normalizeOrderStatus(request.getOrderStatus()));
 
@@ -198,7 +197,8 @@ public class OrderServiceImpl implements OrderService {
                 .orderCode(order.getOrderCode())
                 .userId(order.getUser() != null ? order.getUser().getId() : null)
                 .userName(order.getUser() != null ? order.getUser().getName() : null)
-                .customerPhone(order.getCustomerPhone())
+                .userPhone(order.getUser() != null ? order.getUser().getPhone() : null)
+                .userAddress(order.getUser() != null ? order.getUser().getAddress() : null)
                 .deliveryAddress(order.getDeliveryAddress())
                 .orderStatus(order.getOrderStatus())
                 .paymentMethod(order.getPaymentMethod())

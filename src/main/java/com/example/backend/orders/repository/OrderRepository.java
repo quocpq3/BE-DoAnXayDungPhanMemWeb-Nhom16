@@ -19,7 +19,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         SELECT COUNT(o) > 0
         FROM Order o
         JOIN o.items i
-        WHERE o.customerPhone = :phone
+        WHERE o.user.phone = :phone
           AND i.menuItem.itemId = :itemId
           AND o.orderStatus IN ('PAID', 'COMPLETED')
     """)

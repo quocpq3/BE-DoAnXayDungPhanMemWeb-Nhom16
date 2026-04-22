@@ -30,9 +30,6 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "customer_phone")
-    private String customerPhone;
-
     @Column(name = "delivery_address")
     private String deliveryAddress;
 
