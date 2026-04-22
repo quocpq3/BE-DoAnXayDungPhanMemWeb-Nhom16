@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         HashSet<Role> roles = new HashSet<>();
-        Role userRole = roleRepository.findByName("ROLE_USER")
+        Role userRole = roleRepository.findByName("USER")
                 .orElseThrow(() -> new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION));
         roles.add(userRole);
         user.setRoles(roles);
