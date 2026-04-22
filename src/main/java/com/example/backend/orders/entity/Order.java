@@ -1,5 +1,6 @@
 package com.example.backend.orders.entity;
 
+import com.example.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,11 +26,9 @@ public class Order {
     @Column(name = "order_code", nullable = false, unique = true)
     private String orderCode;
 
-    @Column(name = "user_id")
-    private Long userId;
-
-    @Column(name = "customer_name", nullable = false)
-    private String customerName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(name = "customer_phone")
     private String customerPhone;

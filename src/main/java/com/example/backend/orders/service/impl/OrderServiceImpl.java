@@ -10,6 +10,8 @@ import com.example.backend.orders.entity.Order;
 import com.example.backend.orders.entity.OrderItem;
 import com.example.backend.orders.repository.OrderRepository;
 import com.example.backend.orders.service.OrderService;
+import com.example.backend.user.entity.User;
+import com.example.backend.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final MenuItemRepository menuItemRepository;
+    private final UserRepository userRepository;
 
     @Override
     public OrderResponse create(OrderRequest request) {
@@ -93,8 +96,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void applyOrderData(Order order, OrderRequest request) {
-        order.setUserId(request.getUserId());
-        order.setCustomerName(request.getCustomerName());
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Không tìm thấy user với id = " + request.getUserId()
+                ));
+
+        order.setUser(user);
         order.setCustomerPhone(request.getCustomerPhone());
         order.setDeliveryAddress(request.getDeliveryAddress());
         order.setOrderStatus(normalizeOrderStatus(request.getOrderStatus()));
@@ -189,8 +196,8 @@ public class OrderServiceImpl implements OrderService {
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
                 .orderCode(order.getOrderCode())
-                .userId(order.getUserId())
-                .customerName(order.getCustomerName())
+                .userId(order.getUser() != null ? order.getUser().getId() : null)
+                .userName(order.getUser() != null ? order.getUser().getName() : null)
                 .customerPhone(order.getCustomerPhone())
                 .deliveryAddress(order.getDeliveryAddress())
                 .orderStatus(order.getOrderStatus())
