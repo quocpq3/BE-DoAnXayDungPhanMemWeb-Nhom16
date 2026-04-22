@@ -1,4 +1,4 @@
-package com.example.backend.user.controller;
+package com.example.backend.role.controller;
 
 import com.example.backend.common.ApiResponse;
 import com.example.backend.role.entity.Role; // Giả sử ông có Entity này
