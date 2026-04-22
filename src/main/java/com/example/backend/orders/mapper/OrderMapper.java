@@ -13,9 +13,6 @@ public interface OrderMapper {
 
     @Mapping(target = "orderId", ignore = true)
     @Mapping(target = "orderCode", ignore = true)
-    @Mapping(target = "user", ignore = true)
-    @Mapping(target = "customerName", ignore = true)
-    @Mapping(target = "customerPhone", ignore = true)
     @Mapping(target = "totalAmount", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "items", ignore = true)
@@ -34,9 +31,5 @@ public interface OrderMapper {
 
     List<OrderItemResponse> toOrderItemResponseList(List<OrderItem> items);
 
-    @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "userName", source = "user.name")
-    @Mapping(target = "userPhone", source = "user.phone")
-    @Mapping(target = "userAddress", source = "user.address")
     OrderResponse toOrderResponse(Order order);
 }

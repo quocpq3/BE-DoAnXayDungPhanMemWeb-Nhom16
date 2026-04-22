@@ -15,12 +15,10 @@ public class OrderResponse {
     private Long orderId;
     private String orderCode;
 
-    private Long userId;
-    private String userName;
-    private String userPhone;
-    private String userAddress;
-
+    private String customerName;
+    private String customerPhone;
     private String deliveryAddress;
+
     private String orderStatus;
     private String paymentMethod;
     private String deliveryMethod;
