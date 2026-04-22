@@ -1,8 +1,8 @@
 package com.example.backend.orders.dto;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
@@ -15,14 +15,15 @@ import java.util.List;
 @Builder
 public class OrderRequest {
 
-    @NotNull(message = "userId không được để trống")
-    private Long userId;
+    @NotBlank(message = "INVALID_KEY")
+    private String customerName;
 
+    private String customerPhone;
     private String deliveryAddress;
 
     @Pattern(
             regexp = "^(?i)(PENDING|PAID|COMPLETED|CANCELLED)$",
-            message = "orderStatus chỉ được là PENDING, PAID, COMPLETED hoặc CANCELLED"
+            message = "INVALID_KEY"
     )
     private String orderStatus;
 
@@ -31,6 +32,6 @@ public class OrderRequest {
     private String note;
 
     @Valid
-    @NotEmpty(message = "Danh sách món không được rỗng")
+    @NotEmpty(message = "INVALID_KEY")
     private List<OrderItemRequest> items;
 }

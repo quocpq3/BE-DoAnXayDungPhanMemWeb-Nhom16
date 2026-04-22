@@ -19,18 +19,18 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         SELECT COUNT(o) > 0
         FROM Order o
         JOIN o.items i
-        WHERE o.user.phone = :phone
+        WHERE o.customerPhone = :phone
           AND i.menuItem.itemId = :itemId
           AND o.orderStatus IN ('PAID', 'COMPLETED')
     """)
     boolean existsByPurchased(@Param("phone") String phone, @Param("itemId") Long itemId);
 
     @Override
-    @EntityGraph(attributePaths = {"user", "items", "items.menuItem"})
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
     List<Order> findAll();
 
     @Override
-    @EntityGraph(attributePaths = {"user", "items", "items.menuItem"})
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
     Optional<Order> findById(Long id);
 
     long countByOrderCodeStartingWith(String prefix);

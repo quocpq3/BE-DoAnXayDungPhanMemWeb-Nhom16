@@ -12,8 +12,6 @@ import com.example.backend.orders.entity.Order;
 import com.example.backend.orders.entity.OrderItem;
 import com.example.backend.orders.repository.OrderRepository;
 import com.example.backend.orders.service.OrderService;
-import com.example.backend.user.entity.User;
-import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -36,7 +34,6 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final MenuItemRepository menuItemRepository;
-    private final UserRepository userRepository;
 
     @Override
     public OrderResponse create(OrderRequest request) {
@@ -46,8 +43,6 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = new Order();
         order.setCreatedAt(LocalDateTime.now());
-
-        // chống trùng order_code
         order.setOrderCode(generateOrderCode());
 
         applyOrderData(order, request, true);
@@ -56,7 +51,6 @@ public class OrderServiceImpl implements OrderService {
             Order saved = orderRepository.saveAndFlush(order);
             return toResponse(saved);
         } catch (DataIntegrityViolationException ex) {
-            // nếu dính unique order_code hoặc FK/schema khác
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
@@ -136,39 +130,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void applyOrderData(Order order, OrderRequest request, boolean isCreate) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
-        order.setUser(user);
-
-        // đồng bộ dữ liệu cũ để không vỡ schema DB hiện tại
-        order.setCustomerName(
-                user.getName() != null && !user.getName().isBlank()
-                        ? user.getName().trim()
-                        : "Khách hàng"
-        );
-        order.setCustomerPhone(user.getPhone());
-
-        String incomingAddress = normalizeText(request.getDeliveryAddress());
-        if (incomingAddress != null) {
-            order.setDeliveryAddress(incomingAddress);
-        } else if (isCreate) {
-            order.setDeliveryAddress(user.getAddress());
-        } else if (order.getDeliveryAddress() == null || order.getDeliveryAddress().isBlank()) {
-            order.setDeliveryAddress(user.getAddress());
+        String customerName = normalizeText(request.getCustomerName());
+        if (customerName == null) {
+            throw new AppException(ErrorCode.INVALID_KEY);
         }
 
+        order.setCustomerName(customerName);
+        order.setCustomerPhone(normalizeText(request.getCustomerPhone()));
+        order.setDeliveryAddress(normalizeText(request.getDeliveryAddress()));
         order.setOrderStatus(resolveOrderStatus(
                 request.getOrderStatus(),
                 isCreate ? null : order.getOrderStatus()
         ));
-
         order.setPaymentMethod(resolveTextOrDefault(
                 request.getPaymentMethod(),
                 isCreate ? null : order.getPaymentMethod(),
                 "CASH"
         ));
-
         order.setDeliveryMethod(resolveTextOrDefault(
                 request.getDeliveryMethod(),
                 isCreate ? null : order.getDeliveryMethod(),
@@ -277,10 +255,8 @@ public class OrderServiceImpl implements OrderService {
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
                 .orderCode(order.getOrderCode())
-                .userId(order.getUser() != null ? order.getUser().getId() : null)
-                .userName(order.getUser() != null ? order.getUser().getName() : order.getCustomerName())
-                .userPhone(order.getUser() != null ? order.getUser().getPhone() : order.getCustomerPhone())
-                .userAddress(order.getUser() != null ? order.getUser().getAddress() : null)
+                .customerName(order.getCustomerName())
+                .customerPhone(order.getCustomerPhone())
                 .deliveryAddress(order.getDeliveryAddress())
                 .orderStatus(order.getOrderStatus())
                 .paymentMethod(order.getPaymentMethod())

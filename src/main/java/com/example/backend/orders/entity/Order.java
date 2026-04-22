@@ -1,6 +1,5 @@
 package com.example.backend.orders.entity;
 
-import com.example.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,12 +25,7 @@ public class Order {
     @Column(name = "order_code", nullable = false, unique = true)
     private String orderCode;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    // Giữ lại để tương thích DB cũ, nhưng sẽ tự sync từ User
-    @Column(name = "customer_name")
+    @Column(name = "customer_name", nullable = false)
     private String customerName;
 
     @Column(name = "customer_phone")
