@@ -26,11 +26,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     boolean existsByPurchased(@Param("phone") String phone, @Param("itemId") Long itemId);
 
     @Override
-    @EntityGraph(attributePaths = {"items", "items.menuItem"})
+    @EntityGraph(attributePaths = {"user", "items", "items.menuItem"})
     List<Order> findAll();
 
     @Override
-    @EntityGraph(attributePaths = {"items", "items.menuItem"})
+    @EntityGraph(attributePaths = {"user", "items", "items.menuItem"})
     Optional<Order> findById(Long id);
 
     long countByOrderCodeStartingWith(String prefix);

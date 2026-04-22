@@ -14,8 +14,10 @@ import java.util.List;
 public class OrderResponse {
     private Long orderId;
     private String orderCode;
+
     private Long userId;
-    private String customerName;
+    private String userName;
+
     private String customerPhone;
     private String deliveryAddress;
     private String orderStatus;
