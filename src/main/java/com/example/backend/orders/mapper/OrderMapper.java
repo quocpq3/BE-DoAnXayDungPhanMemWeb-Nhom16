@@ -14,6 +14,8 @@ public interface OrderMapper {
     @Mapping(target = "orderId", ignore = true)
     @Mapping(target = "orderCode", ignore = true)
     @Mapping(target = "user", ignore = true)
+    @Mapping(target = "customerName", ignore = true)
+    @Mapping(target = "customerPhone", ignore = true)
     @Mapping(target = "totalAmount", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "items", ignore = true)
