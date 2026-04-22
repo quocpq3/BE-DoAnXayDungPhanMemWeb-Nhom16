@@ -18,7 +18,6 @@ public class OrderRequest {
     @NotNull(message = "userId không được để trống")
     private Long userId;
 
-    private String customerPhone;
     private String deliveryAddress;
 
     @Pattern(
