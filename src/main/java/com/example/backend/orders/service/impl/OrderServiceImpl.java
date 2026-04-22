@@ -14,6 +14,7 @@ import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,9 +43,9 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderCode(generateOrderCode());
         order.setCreatedAt(LocalDateTime.now());
 
-        applyOrderData(order, request);
+        applyOrderData(order, request, true);
 
-        Order saved = orderRepository.save(order);
+        Order saved = orderRepository.saveAndFlush(order);
         return toResponse(saved);
     }
 
@@ -53,9 +54,14 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id));
 
-        applyOrderData(order, request);
+        String currentStatus = normalizeStatusForComparison(order.getOrderStatus());
+        if ("PAID".equals(currentStatus) || "COMPLETED".equals(currentStatus)) {
+            throw new IllegalStateException("Không thể sửa toàn bộ đơn hàng đã thanh toán hoặc đã hoàn thành");
+        }
 
-        Order saved = orderRepository.save(order);
+        applyOrderData(order, request, false);
+
+        Order saved = orderRepository.saveAndFlush(order);
         return toResponse(saved);
     }
 
@@ -64,9 +70,8 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id));
 
-        order.setOrderStatus(normalizeOrderStatus(orderStatus));
-
-        Order saved = orderRepository.save(order);
+        order.setOrderStatus(resolveOrderStatus(orderStatus, order.getOrderStatus()));
+        Order saved = orderRepository.saveAndFlush(order);
         return toResponse(saved);
     }
 
@@ -89,13 +94,23 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void delete(Long id) {
-        if (!orderRepository.existsById(id)) {
-            throw new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id);
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn hàng với id = " + id));
+
+        String currentStatus = normalizeStatusForComparison(order.getOrderStatus());
+        if ("PAID".equals(currentStatus) || "COMPLETED".equals(currentStatus)) {
+            throw new IllegalStateException("Không thể xóa đơn hàng đã thanh toán hoặc đã hoàn thành");
         }
-        orderRepository.deleteById(id);
+
+        try {
+            orderRepository.delete(order);
+            orderRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new IllegalStateException("Không thể xóa đơn hàng vì đang được liên kết với dữ liệu khác");
+        }
     }
 
-    private void applyOrderData(Order order, OrderRequest request) {
+    private void applyOrderData(Order order, OrderRequest request, boolean isCreate) {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Không tìm thấy user với id = " + request.getUserId()
@@ -103,32 +118,34 @@ public class OrderServiceImpl implements OrderService {
 
         order.setUser(user);
 
-        // Đồng bộ dữ liệu cũ theo user để không bị vỡ schema DB hiện tại
+        // Giữ tương thích schema DB cũ
         order.setCustomerName(user.getName());
         order.setCustomerPhone(user.getPhone());
 
-        // Nếu request không gửi deliveryAddress thì lấy tạm address của user
-        if (request.getDeliveryAddress() != null && !request.getDeliveryAddress().isBlank()) {
-            order.setDeliveryAddress(request.getDeliveryAddress().trim());
-        } else {
+        String incomingAddress = normalizeText(request.getDeliveryAddress());
+        if (incomingAddress != null) {
+            order.setDeliveryAddress(incomingAddress);
+        } else if (isCreate) {
+            order.setDeliveryAddress(user.getAddress());
+        } else if (order.getDeliveryAddress() == null || order.getDeliveryAddress().isBlank()) {
             order.setDeliveryAddress(user.getAddress());
         }
 
-        order.setOrderStatus(normalizeOrderStatus(request.getOrderStatus()));
+        order.setOrderStatus(resolveOrderStatus(request.getOrderStatus(), isCreate ? null : order.getOrderStatus()));
+        order.setPaymentMethod(resolveTextOrDefault(
+                request.getPaymentMethod(),
+                isCreate ? null : order.getPaymentMethod(),
+                "CASH"
+        ));
+        order.setDeliveryMethod(resolveTextOrDefault(
+                request.getDeliveryMethod(),
+                isCreate ? null : order.getDeliveryMethod(),
+                "PICKUP"
+        ));
 
-        order.setPaymentMethod(
-                request.getPaymentMethod() != null && !request.getPaymentMethod().isBlank()
-                        ? request.getPaymentMethod().trim().toUpperCase()
-                        : "CASH"
-        );
-
-        order.setDeliveryMethod(
-                request.getDeliveryMethod() != null && !request.getDeliveryMethod().isBlank()
-                        ? request.getDeliveryMethod().trim().toUpperCase()
-                        : "PICKUP"
-        );
-
-        order.setNote(request.getNote());
+        if (request.getNote() != null) {
+            order.setNote(request.getNote().trim());
+        }
 
         List<OrderItem> orderItems = buildOrderItems(order, request.getItems());
         BigDecimal totalAmount = orderItems.stream()
@@ -140,20 +157,45 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
     }
 
-    private String normalizeOrderStatus(String status) {
-        if (status == null || status.isBlank()) {
-            return "PENDING";
+    private String resolveOrderStatus(String incomingStatus, String currentStatus) {
+        if (incomingStatus == null || incomingStatus.isBlank()) {
+            if (currentStatus == null || currentStatus.isBlank()) {
+                return "PENDING";
+            }
+            return currentStatus.trim().toUpperCase();
         }
 
-        String normalized = status.trim().toUpperCase();
-
+        String normalized = incomingStatus.trim().toUpperCase();
         if (!ALLOWED_ORDER_STATUSES.contains(normalized)) {
             throw new IllegalArgumentException(
                     "orderStatus không hợp lệ. Chỉ chấp nhận: PENDING, PAID, COMPLETED, CANCELLED"
             );
         }
-
         return normalized;
+    }
+
+    private String resolveTextOrDefault(String incoming, String current, String defaultValue) {
+        if (incoming != null && !incoming.isBlank()) {
+            return incoming.trim().toUpperCase();
+        }
+        if (current != null && !current.isBlank()) {
+            return current.trim().toUpperCase();
+        }
+        return defaultValue;
+    }
+
+    private String normalizeText(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private String normalizeStatusForComparison(String status) {
+        if (status == null) {
+            return "";
+        }
+        return status.trim().toUpperCase();
     }
 
     private List<OrderItem> buildOrderItems(Order order, List<OrderItemRequest> itemRequests) {
@@ -228,7 +270,14 @@ public class OrderServiceImpl implements OrderService {
                 + String.format("%02d", today.getMonthValue())
                 + String.format("%02d", today.getDayOfMonth());
 
-        long count = orderRepository.countByOrderCodeStartingWith(prefix);
-        return prefix + String.format("%03d", count + 1);
+        long sequence = orderRepository.countByOrderCodeStartingWith(prefix) + 1;
+        String candidate;
+
+        do {
+            candidate = prefix + String.format("%03d", sequence);
+            sequence++;
+        } while (orderRepository.existsByOrderCode(candidate));
+
+        return candidate;
     }
 }
