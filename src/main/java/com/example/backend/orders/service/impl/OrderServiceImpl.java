@@ -102,7 +102,18 @@ public class OrderServiceImpl implements OrderService {
                 ));
 
         order.setUser(user);
-        order.setDeliveryAddress(request.getDeliveryAddress());
+
+        // Đồng bộ dữ liệu cũ theo user để không bị vỡ schema DB hiện tại
+        order.setCustomerName(user.getName());
+        order.setCustomerPhone(user.getPhone());
+
+        // Nếu request không gửi deliveryAddress thì lấy tạm address của user
+        if (request.getDeliveryAddress() != null && !request.getDeliveryAddress().isBlank()) {
+            order.setDeliveryAddress(request.getDeliveryAddress().trim());
+        } else {
+            order.setDeliveryAddress(user.getAddress());
+        }
+
         order.setOrderStatus(normalizeOrderStatus(request.getOrderStatus()));
 
         order.setPaymentMethod(
@@ -196,8 +207,8 @@ public class OrderServiceImpl implements OrderService {
                 .orderId(order.getOrderId())
                 .orderCode(order.getOrderCode())
                 .userId(order.getUser() != null ? order.getUser().getId() : null)
-                .userName(order.getUser() != null ? order.getUser().getName() : null)
-                .userPhone(order.getUser() != null ? order.getUser().getPhone() : null)
+                .userName(order.getUser() != null ? order.getUser().getName() : order.getCustomerName())
+                .userPhone(order.getUser() != null ? order.getUser().getPhone() : order.getCustomerPhone())
                 .userAddress(order.getUser() != null ? order.getUser().getAddress() : null)
                 .deliveryAddress(order.getDeliveryAddress())
                 .orderStatus(order.getOrderStatus())

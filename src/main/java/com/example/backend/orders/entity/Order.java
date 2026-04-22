@@ -30,6 +30,13 @@ public class Order {
     @JoinColumn(name = "user_id")
     private User user;
 
+    // Giữ lại để tương thích DB cũ, nhưng sẽ tự sync từ User
+    @Column(name = "customer_name")
+    private String customerName;
+
+    @Column(name = "customer_phone")
+    private String customerPhone;
+
     @Column(name = "delivery_address")
     private String deliveryAddress;
 
