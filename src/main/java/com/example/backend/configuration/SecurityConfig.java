@@ -40,6 +40,7 @@ public class SecurityConfig {
 //
 //                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
 //                        .requestMatchers(HttpMethod.GET, "/api/orders/**").permitAll()
+//                        .requestMatchers(HttpMethod.PATCH, "/api/orders/**").permitAll()
 //
 //                        .anyRequest().authenticated()
 
@@ -62,7 +63,6 @@ public class SecurityConfig {
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-
 
         jwtGrantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
 
