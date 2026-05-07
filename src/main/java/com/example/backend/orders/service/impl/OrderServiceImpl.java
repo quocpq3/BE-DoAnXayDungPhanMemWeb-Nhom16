@@ -84,7 +84,25 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
-        order.setOrderStatus(resolveOrderStatus(orderStatus, order.getOrderStatus()));
+        String currentStatus = normalizeStatusForComparison(order.getOrderStatus());
+        String newStatus = resolveOrderStatus(orderStatus, order.getOrderStatus());
+
+        // nếu trạng thái mới giống trạng thái hiện tại thì giữ nguyên
+        if (currentStatus.equals(newStatus)) {
+            return toResponse(order);
+        }
+
+        boolean isValidTransition =
+                ("PENDING".equals(currentStatus) && ("PAID".equals(newStatus) || "CANCELLED".equals(newStatus)))
+                        || ("PAID".equals(currentStatus) && ("COMPLETED".equals(newStatus) || "CANCELLED".equals(newStatus)))
+                        || ("COMPLETED".equals(currentStatus) && "COMPLETED".equals(newStatus))
+                        || ("CANCELLED".equals(currentStatus) && "CANCELLED".equals(newStatus));
+
+        if (!isValidTransition) {
+            throw new AppException(ErrorCode.INVALID_KEY);
+        }
+
+        order.setOrderStatus(newStatus);
 
         try {
             Order saved = orderRepository.saveAndFlush(order);
